@@ -15,10 +15,12 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const isWindows = process.platform === "win32";
-const shell = isWindows;
 
 function run(cmd, args, cwd) {
   console.log(`\n$ ${cmd} ${args.join(" ")}   (${cwd})`);
+  // npm and npx are .cmd shims on Windows; a shell would also split arguments
+  // that contain spaces (the pip requirement does), so only they get one.
+  const shell = isWindows && (cmd === "npm" || cmd === "npx");
   execFileSync(cmd, args, { cwd, stdio: "inherit", shell });
 }
 
