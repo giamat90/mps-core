@@ -42,8 +42,8 @@ different behaviour from shared code, the difference is passed in:
 
 Shared (v0.1.0): the modules that were byte-identical and depend on nothing app
 specific: `metronome`, `recorder`, `metronomeSync`, `zoomPan`, the updater store,
-note/frequency maths, the lyrics slice, and in Python the lyrics engine and the
-yt-dlp floor check.
+note/frequency maths, the lyrics slice, the panel-visibility store (v0.2.0), and in
+Python the lyrics engine and the yt-dlp floor check.
 
 Not shared yet, with the reason, so the next person does not have to rediscover it:
 

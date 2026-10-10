@@ -28,6 +28,7 @@ all of which both apps already have): `react`, `zustand`, `@tauri-apps/api`,
 | `@giamat90/mps-core/zoomPan` | zoom/pan maths and constants |
 | `@giamat90/mps-core/music` | `NOTE_NAMES`, `midiToFrequency`, `frequencyToMidi`, `frequencyToNote` |
 | `@giamat90/mps-core/updater` | `useUpdaterStore` |
+| `@giamat90/mps-core/panels` | `createPanelStore` (headless; the app renders its own menu and decides what each panel is) |
 | `@giamat90/mps-core/lyrics` | lyric types, `activeLineIndex`/`activeWordIndex`/`lineSeekTime`/`lyricsPlainText`, the IPC wrappers, `useLyricsStore` |
 
 ### Vitest

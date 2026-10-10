@@ -27,6 +27,7 @@ const SURFACE: Record<string, string[]> = {
   ],
   "./music": ["A4_FREQUENCY", "A4_MIDI", "NOTE_NAMES", "frequencyToMidi", "frequencyToNote", "midiToFrequency"],
   "./updater": ["useUpdaterStore"],
+  "./panels": ["createPanelStore"],
   "./lyrics": [
     "LINE_HOLD_S",
     "LINE_LEAD_IN_S",
