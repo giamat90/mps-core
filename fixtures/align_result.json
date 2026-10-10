@@ -1,0 +1,82 @@
+{
+  "aligner": "uniform-test-engine",
+  "lines": [
+    {
+      "text": "hello world",
+      "start": 0.58,
+      "end": 2.4,
+      "score": 0.763,
+      "words": [
+        {
+          "text": "hello",
+          "start": 0.58,
+          "end": 1.4,
+          "score": 0.763
+        },
+        {
+          "text": "world",
+          "start": 1.58,
+          "end": 2.4,
+          "score": 0.763
+        }
+      ]
+    },
+    {
+      "text": "second line here",
+      "start": 2.58,
+      "end": 5.2,
+      "score": 0.763,
+      "words": [
+        {
+          "text": "second",
+          "start": 2.58,
+          "end": 3.6,
+          "score": 0.763
+        },
+        {
+          "text": "line",
+          "start": 3.78,
+          "end": 4.4,
+          "score": 0.763
+        },
+        {
+          "text": "here",
+          "start": 4.58,
+          "end": 5.2,
+          "score": 0.763
+        }
+      ]
+    },
+    {
+      "text": "la la la",
+      "start": 5.38,
+      "end": 6.4,
+      "score": 0.763,
+      "words": [
+        {
+          "text": "la",
+          "start": 5.38,
+          "end": 5.6,
+          "score": 0.763
+        },
+        {
+          "text": "la",
+          "start": 5.78,
+          "end": 6.0,
+          "score": 0.763
+        },
+        {
+          "text": "la",
+          "start": 6.18,
+          "end": 6.4,
+          "score": 0.763
+        }
+      ]
+    }
+  ],
+  "meanScore": 0.763,
+  "evidenceRatio": 3.325,
+  "alignedWords": 8,
+  "totalWords": 8,
+  "warning": null
+}

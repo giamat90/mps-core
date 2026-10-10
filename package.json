@@ -1,0 +1,42 @@
+{
+  "name": "@giamat90/mps-core",
+  "version": "0.1.0",
+  "description": "Code shared by Vocal Practice Studio (VPS) and Song Practice Studio (SPS): TypeScript modules under src/, the Python sidecar library under python/.",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./metronome": "./src/audio/metronome.ts",
+    "./recorder": "./src/audio/recorder.ts",
+    "./metronomeSync": "./src/lib/metronomeSync.ts",
+    "./zoomPan": "./src/lib/zoomPan.ts",
+    "./music": "./src/lib/music.ts",
+    "./updater": "./src/updater/index.ts",
+    "./lyrics": "./src/lyrics/index.ts"
+  },
+  "files": [
+    "src",
+    "!src/**/*.test.ts",
+    "!src/test"
+  ],
+  "scripts": {
+    "typecheck": "tsc",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "@tauri-apps/api": "^2.10.1",
+    "@tauri-apps/plugin-process": "^2.3.1",
+    "@tauri-apps/plugin-updater": "^2.10.1",
+    "react": "^19.2.4",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@tauri-apps/api": "^2.10.1",
+    "@tauri-apps/plugin-process": "^2.3.1",
+    "@tauri-apps/plugin-updater": "^2.10.1",
+    "@types/node": "^24.0.0",
+    "react": "^19.2.4",
+    "typescript": "^6.0.2",
+    "vitest": "^5.0.3",
+    "zustand": "^5.0.12"
+  }
+}
