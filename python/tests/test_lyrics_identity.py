@@ -2,7 +2,10 @@
 network, where it keeps the model, and which variable switches the test engine."""
 
 import io
+import sys
+import types
 
+import numpy as np
 import pytest
 
 from mps_core import lyrics
@@ -54,6 +57,27 @@ class TestUserAgent:
         result = lyrics.find_lyrics("Song", duration=200, app=app)
         assert seen["ua"] == app.user_agent
         assert result["text"] == "la"
+
+    def test_the_model_download_the_aligner_makes_carries_the_apps_user_agent(self, tmp_path, monkeypatch, app):
+        seen = {}
+
+        def fake_download(url, dest, on_progress=None, opener=None, user_agent=lyrics.DEFAULT_USER_AGENT):
+            seen["ua"] = user_agent
+            raise lyrics.LyricsError("stop before inference")
+
+        class Bundle:
+            get_labels = staticmethod(lambda: lyrics._W2V2_LABELS)
+
+        fake_torchaudio = types.ModuleType("torchaudio")
+        fake_torchaudio.pipelines = types.SimpleNamespace(**{lyrics._W2V2_BUNDLE: Bundle})
+        monkeypatch.setitem(sys.modules, "torch", types.ModuleType("torch"))
+        monkeypatch.setitem(sys.modules, "torchaudio", fake_torchaudio)
+        monkeypatch.setattr(lyrics, "download_file", fake_download)
+
+        aligner = lyrics.default_aligner(str(tmp_path), app=app)
+        with pytest.raises(lyrics.LyricsError, match="stop before inference"):
+            aligner.emissions(np.zeros(16000, dtype=np.float32), [1])
+        assert seen["ua"] == app.user_agent
 
 
 class TestModelsDirectory:
