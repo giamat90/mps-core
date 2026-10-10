@@ -30,7 +30,9 @@ if (dirty) console.warn("warning: uncommitted changes are not part of this test:
 
 const repoUrl = pathToFileURL(repo).href;
 const npmSpec = `git+${repoUrl}#${sha}`;
-const pipSpec = `mps-core @ git+${repoUrl}@${sha}#subdirectory=python`;
+// Bare URL form: pip 22 cannot parse `name @ file:///C:/...` on Windows, and
+// the bare form is what the apps' requirements.txt use for the same reason.
+const pipSpec = `git+${repoUrl}@${sha}#subdirectory=python`;
 
 const work = mkdtempSync(join(tmpdir(), "mps-core-consumer-"));
 console.log(`consumer sandbox: ${work}\nnpm spec: ${npmSpec}\npip spec: ${pipSpec}`);
