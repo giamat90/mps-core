@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0
+
+TypeScript (`@giamat90/mps-core`):
+- `panels`: `createPanelStore({ storageKey, panels })`, a headless store of which optional panels of a page the user wants to see. Only explicit choices are persisted, so a panel added later takes its default while old choices are kept. Unknown ids and non-boolean values in storage are ignored; storage failures warn and keep the in-memory choice. The package ships no UI for it: each app renders its own menu.
+
 ## 0.1.0
 
 First release: the code that VPS and SPS ran as byte-identical (or three-line-different) copies.

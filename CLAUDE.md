@@ -54,6 +54,7 @@ src/               TypeScript source, shipped as-is (no build step)
   audio/           metronome, recorder
   lib/             metronomeSync, zoomPan, music
   updater/         auto-update store
+  panels/          headless show/hide store for optional page panels
   lyrics/          types, timing, ipc, store
 python/            pip package mps-core (src/mps_core, tests/)
 fixtures/          sidecar replies pinned by Python, read by TypeScript
