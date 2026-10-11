@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0
+
+TypeScript (`@giamat90/mps-core`):
+- `windows`: the app-independent half of detachable panels (a panel dragged out of the main window into a window of its own). `definePanelWindows` (the allowlist, window labels), `RemoteClock` / `TransportPublisher` (a detached window extrapolates the playhead instead of receiving it 30 times a second), `startMainBridge` and `createDetachedBridge` (the event protocol: hello, state, command, docked; commands are parsed by the app and applied by the app; extra streams plug in), `decideDrop` (a drag released outside the window detaches), `createDockGesture` (a drag released over the main window docks), `createDetachedStore`, `panelsToClose`, and the guards for validating what crosses the window boundary. No Tauri import: `emit` and `listen` are injected.
+
 ## 0.2.0
 
 TypeScript (`@giamat90/mps-core`):

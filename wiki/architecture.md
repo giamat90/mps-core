@@ -42,14 +42,16 @@ different behaviour from shared code, the difference is passed in:
 
 Shared (v0.1.0): the modules that were byte-identical and depend on nothing app
 specific: `metronome`, `recorder`, `metronomeSync`, `zoomPan`, the updater store,
-note/frequency maths, the lyrics slice, the panel-visibility store (v0.2.0), and in
-Python the lyrics engine and the yt-dlp floor check.
+note/frequency maths, the lyrics slice, the panel-visibility store (v0.2.0), the window plumbing for detachable panels
+(v0.3.0), and in Python the lyrics engine and the yt-dlp floor check.
 
 Not shared yet, with the reason, so the next person does not have to rediscover it:
 
 | Candidate | Why it is not here |
 |---|---|
 | `KeyTranspose`, `OutputSelector`, `MicSelector`, `YouTubeCookiesControl` components | Identical today, but each reads a store that differs between the apps, and each styles itself with classes defined in the app's CSS. Sharing them needs a props-based API and a shipped stylesheet. |
+| `windows.rs` (detached window creation, remembered geometry, `cursor_over_main`) | Identical in the two apps apart from the panel table and the data directory, but it is Rust: the first thing a Rust crate would hold, together with `sidecar.rs`. Until then it is copied, and each copy says so. |
+| `DetachHandle`, `DockHandle`, the detached host | Components styled by each app's CSS, like the menu; the gesture logic they call is shared. |
 | `sidecar.rs`, `test_util.rs`, most of `lyrics.rs` | 85% identical but entangled with each app's `Song` model, binary name and Tauri state. A Rust crate with injected configuration is the shape; not attempted in 0.1. |
 | `yt_importer.py` | Differs in the signature of the pipeline it calls; needs the pipeline injected. |
 | `AudioEngine`, `player` store | Fixed three-track trio versus dynamic stem map: divergent by design (see `MPS/CLAUDE.md` rule 3). |
