@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.0
+
+TypeScript (`@giamat90/mps-core`):
+- `shortcuts`: `installShortcuts(target, bindings)`, a global keydown handler with the rules both apps need: keys typed into inputs, chords with ctrl / meta / alt, auto-repeat and keys already handled are ignored, and space is left to a focused button. `matchShortcut`, `shouldIgnoreKey` are exported for tests. No DOM import: the event and target are structural types.
+- `loops`: named loops and bar sections as pure functions. `NamedLoop`, `validateLoop`, `addLoop` / `renameLoop` / `removeLoop` (a bad loop throws an Error whose message is meant for the user), and `barSections`, which cuts a song into groups of bars from its first downbeat (not structure detection).
+
 ## 0.4.0
 
 TypeScript (`@giamat90/mps-core`):

@@ -1,6 +1,6 @@
 {
   "name": "@giamat90/mps-core",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Code shared by Vocal Practice Studio (VPS) and Song Practice Studio (SPS): TypeScript modules under src/, the Python sidecar library under python/.",
   "private": true,
   "type": "module",
@@ -14,7 +14,9 @@
     "./lyrics": "./src/lyrics/index.ts",
     "./panels": "./src/panels/index.ts",
     "./windows": "./src/windows/index.ts",
-    "./takes": "./src/takes/index.ts"
+    "./takes": "./src/takes/index.ts",
+    "./shortcuts": "./src/shortcuts/index.ts",
+    "./loops": "./src/loops/index.ts"
   },
   "files": [
     "src",

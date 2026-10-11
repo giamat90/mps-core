@@ -53,6 +53,17 @@ const SURFACE: Record<string, string[]> = {
     "panelsToClose",
     "startMainBridge",
   ],
+  "./shortcuts": ["installShortcuts", "matchShortcut", "shouldIgnoreKey"],
+  "./loops": [
+    "MAX_LOOPS",
+    "MAX_LOOP_NAME",
+    "MIN_LOOP_SECONDS",
+    "addLoop",
+    "barSections",
+    "removeLoop",
+    "renameLoop",
+    "validateLoop",
+  ],
   "./lyrics": [
     "LINE_HOLD_S",
     "LINE_LEAD_IN_S",
