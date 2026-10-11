@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.0
+
+TypeScript (`@giamat90/mps-core`):
+- `takes`: the pure logic of which recorded takes are shown and which one is heard (`toggleTake`, `showTake`, `hideTake`, `reconcileTakes`, `TakeSelection`). A click on a take shows it, switches to it, or hides it when it is already the active one; several takes can be shown at once, only the active one is heard and analysed.
+
 ## 0.3.0
 
 TypeScript (`@giamat90/mps-core`):

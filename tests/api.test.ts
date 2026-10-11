@@ -28,6 +28,7 @@ const SURFACE: Record<string, string[]> = {
   "./music": ["A4_FREQUENCY", "A4_MIDI", "NOTE_NAMES", "frequencyToMidi", "frequencyToNote", "midiToFrequency"],
   "./updater": ["useUpdaterStore"],
   "./panels": ["createPanelStore"],
+  "./takes": ["EMPTY_SELECTION", "hideTake", "reconcileTakes", "showTake", "toggleTake"],
   "./windows": [
     "DETACHED_LABEL_PREFIX",
     "EVT_COMMAND",

@@ -56,6 +56,7 @@ src/               TypeScript source, shipped as-is (no build step)
   updater/         auto-update store
   panels/          headless show/hide store for optional page panels
   windows/         detachable panels: protocol, remote clock, bridges, drag gestures
+  takes/           which recorded takes are shown / heard (pure functions)
   lyrics/          types, timing, ipc, store
 python/            pip package mps-core (src/mps_core, tests/)
 fixtures/          sidecar replies pinned by Python, read by TypeScript
