@@ -12,12 +12,18 @@ export interface TakeAudibility {
   readonly recording: boolean;
   /** Keep the takes quiet while a new one is being recorded. */
   readonly muteWhileRecording: boolean;
-  /** A take soloed on its lane: it is heard alone, whatever the mode and the mutes. */
+  /** A take soloed on its lane: heard alone among the takes, whatever the mode and the lane mutes. */
   readonly soloed?: string | null;
+  /**
+   * The takes as a whole are silent: the main take mute is on, or another track is
+   * soloed. It outranks everything on the lanes, which only choose among takes.
+   */
+  readonly silenced?: boolean;
 }
 
 /** The takes that have to be heard right now, in the order they were shown. */
 export function audibleTakes(a: TakeAudibility): string[] {
+  if (a.silenced) return [];
   if (a.recording && a.muteWhileRecording) return [];
   if (a.soloed != null && a.shown.includes(a.soloed)) return [a.soloed];
   const muted = new Set(a.muted);

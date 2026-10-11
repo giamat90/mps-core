@@ -72,6 +72,18 @@ describe("audibleTakes with a take soloed", () => {
   });
 });
 
+describe("audibleTakes when the takes as a whole are silenced", () => {
+  it("plays nothing, whatever the lanes say", () => {
+    expect(of({ silenced: true })).toEqual([]);
+    expect(of({ silenced: true, soloed: "a" })).toEqual([]);
+    expect(of({ silenced: true, playback: "selected" })).toEqual([]);
+  });
+
+  it("changes nothing while it is off", () => {
+    expect(of({ silenced: false, soloed: "c" })).toEqual(["c"]);
+  });
+});
+
 describe("audibleTakes while recording", () => {
   it("silences everything when the option to mute takes while recording is on", () => {
     expect(of({ recording: true })).toEqual([]);
