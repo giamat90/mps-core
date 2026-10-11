@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { audibleTakes, type TakeAudibility } from "./audibility";
+import { audibleTakes, takeSilence, type TakeAudibility } from "./audibility";
 
 const base: TakeAudibility = {
   shown: ["a", "b", "c"],
@@ -100,5 +100,57 @@ describe("audibleTakes while recording", () => {
 
   it("per-lane mutes still apply while recording with the option off", () => {
     expect(of({ recording: true, muteWhileRecording: false, muted: ["a"] })).toEqual(["b", "c"]);
+  });
+});
+
+describe("takeSilence", () => {
+  const why = (id: string, over: Partial<TakeAudibility> = {}) => takeSilence({ ...base, ...over }, id);
+
+  it("is null for a take that is heard", () => {
+    expect(why("a")).toBeNull();
+  });
+
+  it("says a take that is not shown is hidden", () => {
+    expect(why("zzz")).toBe("hidden");
+  });
+
+  it("names the lane mute", () => {
+    expect(why("a", { muted: ["a"] })).toBe("muted");
+  });
+
+  it("names selected-only mode for the takes that are not the selected one, and not for the selected one", () => {
+    expect(why("a", { playback: "selected" })).toBe("not-selected");
+    expect(why("b", { playback: "selected" })).toBeNull();
+  });
+
+  it("names a muted selected take in selected-only mode, which is the case that looks like the others", () => {
+    expect(why("b", { playback: "selected", muted: ["b"] })).toBe("muted");
+    expect(why("a", { playback: "selected", muted: ["b"] })).toBe("not-selected");
+  });
+
+  it("names another take's solo, and is null for the soloed one even if it was muted", () => {
+    expect(why("a", { soloed: "c" })).toBe("soloed-other");
+    expect(why("c", { soloed: "c", muted: ["c"] })).toBeNull();
+  });
+
+  it("names the recording mute", () => {
+    expect(why("a", { recording: true })).toBe("recording");
+    expect(why("a", { recording: true, muteWhileRecording: false })).toBeNull();
+  });
+
+  it("puts the main take mute first, then recording, then solo, then the lane mute", () => {
+    expect(why("a", { silenced: true, recording: true, soloed: "c", muted: ["a"] })).toBe("channel");
+    expect(why("a", { recording: true, soloed: "c", muted: ["a"] })).toBe("recording");
+    expect(why("a", { soloed: "c", muted: ["a"] })).toBe("soloed-other");
+  });
+
+  it("agrees with audibleTakes for every combination", () => {
+    const modes = ["all", "selected"] as const;
+    for (const playback of modes) for (const recording of [false, true]) for (const silenced of [false, true])
+      for (const muted of [[], ["a"], ["b"]]) for (const soloed of [null, "a", "c"]) {
+        const a = { ...base, playback, recording, silenced, muted, soloed };
+        const heard = audibleTakes(a);
+        for (const id of base.shown) expect(takeSilence(a, id) === null).toBe(heard.includes(id));
+      }
   });
 });
