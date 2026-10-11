@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.0
+
+TypeScript (`@giamat90/mps-core`):
+- `takes`: the pure logic of which recorded takes are shown and which are heard. `toggleTake`, `showTake`, `hideTake`, `reconcileTakes` (`TakeSelection`): a click on a take shows it, selects it, or hides it when it is already the selected one; several can be shown at once. `audibleTakes` (`TakeAudibility`, `TakePlayback`): all shown takes together or only the selected one, minus the takes muted on their lane, a take soloed on its lane heard alone, and nothing while recording when the app asks for takes to be muted then.
+
 ## 0.3.0
 
 TypeScript (`@giamat90/mps-core`):

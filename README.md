@@ -17,7 +17,7 @@ and passes its own tests.
 
 | Where | Package | Contents |
 |---|---|---|
-| `src/` | `@giamat90/mps-core` (TypeScript source) | `metronome`, `recorder`, `metronomeSync`, `zoomPan`, `music` (note/frequency maths), `updater` (auto-update store), `lyrics` (types, karaoke timing, IPC wrappers, store), `panels` (headless show/hide store for optional page panels), `windows` (detachable panels: clock, event bridges, drag gestures; no Tauri import) |
+| `src/` | `@giamat90/mps-core` (TypeScript source) | `metronome`, `recorder`, `metronomeSync`, `zoomPan`, `music` (note/frequency maths), `updater` (auto-update store), `lyrics` (types, karaoke timing, IPC wrappers, store), `panels` (headless show/hide store for optional page panels), `windows` (detachable panels: clock, event bridges, drag gestures; no Tauri import), `takes` (which recorded takes are shown and which is heard) |
 | `python/` | `mps-core` (`import mps_core`) | `lyrics` (CTC forced alignment + LRCLIB lookup), `version_check` (yt-dlp floor and freshness), `app.AppIdentity` |
 | `fixtures/` | | Real sidecar replies, read by both the Python and the TypeScript tests |
 
