@@ -52,6 +52,26 @@ describe("audibleTakes, selected take only", () => {
   });
 });
 
+describe("audibleTakes with a take soloed", () => {
+  it("plays only the soloed take", () => {
+    expect(of({ soloed: "c" })).toEqual(["c"]);
+  });
+
+  it("the solo wins over the mode and over a mute", () => {
+    expect(of({ soloed: "a", playback: "selected", muted: ["a"] })).toEqual(["a"]);
+  });
+
+  it("ignores a solo on a take that is not shown", () => {
+    expect(of({ soloed: "ghost" })).toEqual(["a", "b", "c"]);
+    expect(of({ soloed: null })).toEqual(["a", "b", "c"]);
+  });
+
+  it("is still silent while recording when takes are muted then", () => {
+    expect(of({ soloed: "a", recording: true })).toEqual([]);
+    expect(of({ soloed: "a", recording: true, muteWhileRecording: false })).toEqual(["a"]);
+  });
+});
+
 describe("audibleTakes while recording", () => {
   it("silences everything when the option to mute takes while recording is on", () => {
     expect(of({ recording: true })).toEqual([]);
