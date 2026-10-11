@@ -29,7 +29,39 @@ all of which both apps already have): `react`, `zustand`, `@tauri-apps/api`,
 | `@giamat90/mps-core/music` | `NOTE_NAMES`, `midiToFrequency`, `frequencyToMidi`, `frequencyToNote` |
 | `@giamat90/mps-core/updater` | `useUpdaterStore` |
 | `@giamat90/mps-core/panels` | `createPanelStore` (headless; the app renders its own menu and decides what each panel is) |
+| `@giamat90/mps-core/windows` | detachable panels: `definePanelWindows`, `startMainBridge`, `createDetachedBridge`, `RemoteClock`, `decideDrop`, `createDockGesture`, `createDetachedStore`, `panelsToClose`, and the guards (see below) |
 | `@giamat90/mps-core/lyrics` | lyric types, `activeLineIndex`/`activeWordIndex`/`lineSeekTime`/`lyricsPlainText`, the IPC wrappers, `useLyricsStore` |
+
+### Detachable panels
+
+`windows` is the half that is the same in both apps. What stays in each app: the
+list of panels, the shared state and its guard, the commands and `parseCommand`,
+the components (`DetachHandle`, `DockHandle`, the host that renders a panel), and
+the Rust side (`windows.rs`: allowlist, window creation, remembered geometry,
+`cursor_over_main`), which is Rust and therefore not here.
+
+```ts
+const windows = definePanelWindows(["lyrics", "takes"] as const);   // allowlist + labels
+
+startMainBridge({            // in the main window
+  isPanel: windows.isPanel,
+  subscribe, transport, shared,        // read from the app's player store
+  parseCommand, apply,                 // the app's commands, validated
+  emit, listen, now,                   // from @tauri-apps/api/event
+  streams: (send) => [/* optional extra feeds: live trace, spectrum */],
+});
+
+const bridge = createDetachedBridge({  // in a detached window
+  panelId, isShared, applyShared, writeTime, emit, listen, now,
+  installTimeSource, listeners,
+});
+player.setState({ seek: (t) => { bridge.seekLocal(t); bridge.command({ type: "seek", time: t }); } });
+await bridge.start();
+```
+
+The Rust allowlist and `definePanelWindows`' list are written twice on purpose
+(the Rust side must refuse labels on its own); each app has a contract test that
+compares them.
 
 ### Vitest
 
