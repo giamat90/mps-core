@@ -28,7 +28,7 @@ all of which both apps already have): `react`, `zustand`, `@tauri-apps/api`,
 | `@giamat90/mps-core/zoomPan` | zoom/pan maths and constants |
 | `@giamat90/mps-core/music` | `NOTE_NAMES`, `midiToFrequency`, `frequencyToMidi`, `frequencyToNote` |
 | `@giamat90/mps-core/updater` | `useUpdaterStore` |
-| `@giamat90/mps-core/panels` | `createPanelStore` (headless; the app renders its own menu and decides what each panel is) |
+| `@giamat90/mps-core/panels` | `createPanelStore` (headless: visibility and order; the app renders its own menu, drag handles and decides what each panel is) |
 | `@giamat90/mps-core/windows` | detachable panels: `definePanelWindows`, `startMainBridge`, `createDetachedBridge`, `RemoteClock`, `decideDrop`, `createDockGesture`, `createDetachedStore`, `panelsToClose`, and the guards (see below) |
 | `@giamat90/mps-core/takes` | `toggleTake`, `showTake`, `hideTake`, `reconcileTakes`, `EMPTY_SELECTION`: pure transitions of `{ shown, active }`; `audibleTakes`: which of them are heard (all together / selected only, lane mutes, muted while recording). The app keeps the state in its player store and owns the audio |
 | `@giamat90/mps-core/lyrics` | lyric types, `activeLineIndex`/`activeWordIndex`/`lineSeekTime`/`lyricsPlainText`, the IPC wrappers, `useLyricsStore` |

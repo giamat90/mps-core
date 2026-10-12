@@ -54,7 +54,7 @@ src/               TypeScript source, shipped as-is (no build step)
   audio/           metronome, recorder
   lib/             metronomeSync, zoomPan, music
   updater/         auto-update store
-  panels/          headless show/hide store for optional page panels
+  panels/          headless show/hide and order store for optional page panels
   windows/         detachable panels: protocol, remote clock, bridges, drag gestures
   takes/           which recorded takes are shown / heard (pure functions)
   shortcuts/       global keydown handler (ignores typing, chords, repeats)
