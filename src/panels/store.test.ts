@@ -167,3 +167,117 @@ describe("validating the definition", () => {
     expect(() => make(PANELS, "")).toThrow();
   });
 });
+
+describe("order", () => {
+  const ids = (store: ReturnType<typeof make>) => store.getState().order;
+
+  it("starts in the order the panels were registered", () => {
+    expect(ids(make())).toEqual(["takes", "lyrics", "spectrum"]);
+  });
+
+  it("moves a panel down onto another, which takes its place", () => {
+    const store = make();
+    store.getState().move("takes", "spectrum");
+    expect(ids(store)).toEqual(["lyrics", "spectrum", "takes"]);
+  });
+
+  it("moves a panel up onto another, which shifts down", () => {
+    const store = make();
+    store.getState().move("spectrum", "takes");
+    expect(ids(store)).toEqual(["spectrum", "takes", "lyrics"]);
+  });
+
+  it("does nothing, and stores nothing, when a panel is dropped on itself", () => {
+    const store = make();
+    store.getState().move("lyrics", "lyrics");
+    expect(ids(store)).toEqual(["takes", "lyrics", "spectrum"]);
+    expect(localStorage.getItem(KEY)).toBeNull();
+  });
+
+  it("does not touch visibility", () => {
+    const store = make();
+    store.getState().toggle("spectrum");
+    store.getState().move("takes", "spectrum");
+    expect(store.getState().visible).toEqual({ takes: true, lyrics: true, spectrum: true });
+  });
+
+  it("rejects an id that is not registered", () => {
+    const store = make();
+    expect(() => store.getState().move("nope" as never, "takes")).toThrow(/nope/);
+    expect(() => store.getState().move("takes", "nope" as never)).toThrow(/nope/);
+  });
+
+  it("is kept across a restart, next to the visibility choices", () => {
+    const store = make();
+    store.getState().setVisible("lyrics", false);
+    store.getState().move("takes", "spectrum");
+    expect(stored()).toEqual({ overrides: { lyrics: false }, order: ["lyrics", "spectrum", "takes"] });
+    expect(ids(make())).toEqual(["lyrics", "spectrum", "takes"]);
+  });
+
+  it("keeps the order when visibility changes afterwards", () => {
+    const store = make();
+    store.getState().move("takes", "spectrum");
+    store.getState().toggle("lyrics");
+    expect(stored()?.order).toEqual(["lyrics", "spectrum", "takes"]);
+  });
+
+  it("resetOrder forgets the order and keeps the visibility choices", () => {
+    const store = make();
+    store.getState().setVisible("lyrics", false);
+    store.getState().move("takes", "spectrum");
+    store.getState().resetOrder();
+    expect(ids(store)).toEqual(["takes", "lyrics", "spectrum"]);
+    expect(stored()).toEqual({ overrides: { lyrics: false } });
+  });
+
+  it("reset forgets the order as well as the visibility choices", () => {
+    const store = make();
+    store.getState().hideAll();
+    store.getState().move("takes", "spectrum");
+    store.getState().reset();
+    expect(ids(store)).toEqual(["takes", "lyrics", "spectrum"]);
+    expect(stored()).toEqual({ overrides: {} });
+  });
+
+  it("places a panel added in a later version after the panel that precedes it by default", () => {
+    localStorage.setItem(KEY, JSON.stringify({ order: ["spectrum", "takes"] }));
+    expect(ids(make())).toEqual(["spectrum", "takes", "lyrics"]);
+  });
+
+  it("places a new panel first when nothing before it is known", () => {
+    localStorage.setItem(KEY, JSON.stringify({ order: ["lyrics", "spectrum"] }));
+    expect(ids(make())).toEqual(["takes", "lyrics", "spectrum"]);
+  });
+
+  it("drops stored ids that no longer exist and repeats", () => {
+    localStorage.setItem(KEY, JSON.stringify({ order: ["gone", "spectrum", "spectrum", "takes", 7, "lyrics"] }));
+    expect(ids(make())).toEqual(["spectrum", "takes", "lyrics"]);
+  });
+
+  it.each([["null"], ['{"order":"takes"}'], ['{"order":{}}'], ['{"order":[]}'], ['{"order":[1,2]}'], ['{"overrides":{}}']])(
+    "falls back to the default order for the stored value %s",
+    (raw) => {
+      localStorage.setItem(KEY, raw);
+      expect(ids(make())).toEqual(["takes", "lyrics", "spectrum"]);
+    },
+  );
+
+  it("still reads a value stored before order existed", () => {
+    localStorage.setItem(KEY, JSON.stringify({ overrides: { takes: false } }));
+    const store = make();
+    expect(store.getState().visible.takes).toBe(false);
+    expect(ids(store)).toEqual(["takes", "lyrics", "spectrum"]);
+  });
+
+  it("keeps the in-memory order and warns when storage rejects the write", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const store = make();
+    vi.spyOn(localStorage, "setItem").mockImplementation(() => {
+      throw new Error("quota");
+    });
+    store.getState().move("takes", "spectrum");
+    expect(ids(store)).toEqual(["lyrics", "spectrum", "takes"]);
+    expect(warn).toHaveBeenCalled();
+  });
+});

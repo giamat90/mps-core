@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.0
+
+TypeScript (`@giamat90/mps-core`):
+- `panels`: `createPanelStore` also keeps the order the user wants the panels in. New state `order` (every registered panel, theirs else registered order) and actions `move(id, overId)` (the panel takes the place of the one it is dropped on), `resetOrder()`; `reset()` now returns visibility and order to the defaults. The order is stored next to the visibility choices only once the user has moved something; a panel added in a later version slots in after the panel that precedes it by default; unknown and repeated ids in storage are dropped. No new export: the change is in `PanelsState`.
+
 ## 0.5.0
 
 TypeScript (`@giamat90/mps-core`):
