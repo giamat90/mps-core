@@ -66,6 +66,20 @@ jobs:
       - name: Wire fixtures are up to date
         run: git diff --exit-code -- fixtures
 
+  rust:
+    name: Rust (cargo test)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust
+
+      - name: cargo test
+        working-directory: rust
+        run: cargo test --locked
+
   consumable:
     name: Installs the way the apps install it
     runs-on: ubuntu-latest

@@ -78,6 +78,7 @@ const SURFACE: Record<string, string[]> = {
     "syncLyrics",
     "useLyricsStore",
   ],
+  "./youtube": ["MANAGED_COOKIES_FILE", "cookiesSource", "isSessionExpiredError", "signInYoutube", "signOutYoutube"],
 };
 
 describe("public API surface", () => {

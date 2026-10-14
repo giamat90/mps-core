@@ -1,7 +1,8 @@
 # mps-core — Claude Code Context
 
 Code shared by VPS and SPS (the two sibling Tauri apps under `MPS/`). It is a
-library, not an app: no UI of its own, no CSS, no Tauri commands.
+library, not an app: no UI of its own, no CSS, no Tauri commands (the Rust crate
+exposes functions; each app wraps them in its own `#[tauri::command]`s).
 
 ## Rules that always apply
 
@@ -60,7 +61,9 @@ src/               TypeScript source, shipped as-is (no build step)
   shortcuts/       global keydown handler (ignores typing, chords, repeats)
   loops/           named loops and bar sections (pure functions)
   lyrics/          types, timing, ipc, store
+  youtube/         cookiesSource, isSessionExpiredError, sign-in/out IPC wrappers
 python/            pip package mps-core (src/mps_core, tests/)
+rust/              Cargo workspace; youtube-signin = crate mps-youtube-signin (git dependency of the apps)
 fixtures/          sidecar replies pinned by Python, read by TypeScript
 tests/             architecture, public API, wire fixtures (TypeScript)
 scripts/           consumer-smoke.mjs, push-to-app.mjs
@@ -72,6 +75,7 @@ wiki/              documentation
 ```powershell
 npm ci; npx tsc; npx vitest run
 cd python; pip install pytest -e .; python -m pytest
+cd rust; cargo test                             # the Rust crate(s)
 node scripts/consumer-smoke.mjs                 # needs a commit; installs it like an app
 node scripts/push-to-app.mjs ../VPS             # try the working tree in an app
 $env:UPDATE_FIXTURES = "1"; python -m pytest tests/test_wire_fixture.py   # regenerate fixtures
