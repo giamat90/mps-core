@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.0
+
+Rust (`mps-youtube-signin`, new, `rust/youtube-signin`, the first Rust crate here):
+- The in-app YouTube sign-in that both apps had as copies: a private WebView2 window on Google's sign-in, cookie reading, the Netscape cookies file yt-dlp reads, the navigation allowlist (Google domains, country domains by shape) and `may_invoke`, which lets an app keep that window away from its commands. The data directory is passed in; the apps keep two thin `#[tauri::command]`s (`sign_in_youtube`, `sign_out_youtube`). Consumed as a git dependency: `mps-youtube-signin = { git = "https://github.com/giamat90/mps-core", tag = "v0.7.0" }`.
+
+TypeScript (`@giamat90/mps-core`):
+- `youtube`: `signInYoutube` / `signOutYoutube` (the two IPC wrappers), `cookiesSource` and `MANAGED_COOKIES_FILE` (is the configured cookies file the in-app sign-in's or one the user chose), and `isSessionExpiredError` (did YouTube turn the request down in a way a fresh sign-in can fix).
+
 ## 0.6.0
 
 TypeScript (`@giamat90/mps-core`):

@@ -92,6 +92,30 @@ The Rust side must register `load_lyrics(songId)`, `sync_lyrics(songId, text, so
 `find_lyrics(songId)`, `delete_lyrics(songId)` and emit `lyrics-progress`
 (`{songId, progress, stage}`).
 
+## Rust
+
+The YouTube sign-in lives in the `mps-youtube-signin` crate (`rust/youtube-signin`). In the app's `src-tauri/Cargo.toml`:
+
+```toml
+mps-youtube-signin = { git = "https://github.com/giamat90/mps-core", tag = "v0.7.0" }
+```
+
+The app keeps two thin commands and calls the crate with its own data directory:
+
+```rust
+#[tauri::command]
+pub async fn sign_in_youtube(app: AppHandle) -> Result<String, String> {
+    mps_youtube_signin::sign_in(&app, &storage::app_data_dir()).await.map(|p| p.to_string_lossy().to_string())
+}
+
+#[tauri::command]
+pub async fn sign_out_youtube() -> Result<(), String> {
+    mps_youtube_signin::sign_out(&storage::app_data_dir())
+}
+```
+
+The app's invoke handler must call `mps_youtube_signin::may_invoke(webview.label())` first and reject when it is false, and its main-window teardown should call `mps_youtube_signin::close(&app)`. The TypeScript half is `@giamat90/mps-core/youtube` (`signInYoutube`, `signOutYoutube`, `cookiesSource`, `isSessionExpiredError`).
+
 ## Python sidecar
 
 `sidecar/requirements.txt` and `requirements-test.txt`:

@@ -50,7 +50,7 @@ Not shared yet, with the reason, so the next person does not have to rediscover 
 | Candidate | Why it is not here |
 |---|---|
 | `KeyTranspose`, `OutputSelector`, `MicSelector`, `YouTubeCookiesControl` components | Identical today, but each reads a store that differs between the apps, and each styles itself with classes defined in the app's CSS. Sharing them needs a props-based API and a shipped stylesheet. |
-| `windows.rs` (detached window creation, remembered geometry, `cursor_over_main`) | Identical in the two apps apart from the panel table and the data directory, but it is Rust: the first thing a Rust crate would hold, together with `sidecar.rs`. Until then it is copied, and each copy says so. |
+| `windows.rs` (detached window creation, remembered geometry, `cursor_over_main`) | Identical in the two apps apart from the panel table and the data directory. Now that `rust/` exists it is the next candidate, together with `sidecar.rs`; until then it is copied, and each copy says so. |
 | `DetachHandle`, `DockHandle`, the detached host | Components styled by each app's CSS, like the menu; the gesture logic they call is shared. |
 | `sidecar.rs`, `test_util.rs`, most of `lyrics.rs` | 85% identical but entangled with each app's `Song` model, binary name and Tauri state. A Rust crate with injected configuration is the shape; not attempted in 0.1. |
 | `yt_importer.py` | Differs in the signature of the pipeline it calls; needs the pipeline injected. |
@@ -89,6 +89,8 @@ costs a 360 MB download into the wrong folder.
 replaces two constants that a convention (`MPS/wiki/conventions.md#10`) asked
 people to keep equal. Each app's tests assert that its `requirements*.txt` floor
 equals it.
+
+**The first Rust crate is a git dependency in a subdirectory.** `rust/youtube-signin` (0.7.0) is a Cargo package the apps name by repository and tag, so one tag still covers all three languages. Cargo locates the package inside the repository by name; the apps' `Cargo.lock` records the exact commit. What differs per app (the data directory) is a parameter; what is an app's alone (the `#[tauri::command]` wrappers, the invoke handler that rejects the sign-in window) stays in the app. The crate is generic over the Tauri runtime and its pure logic (cookie file format, signed-in detection, the navigation allowlist) takes plain strings so its tests need no window. Its CI job runs on Windows, where the webview crates build without system packages.
 
 ## Failure modes this design has, and what covers them
 

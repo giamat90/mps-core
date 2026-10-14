@@ -1,0 +1,3 @@
+[workspace]
+members = ["youtube-signin"]
+resolver = "2"

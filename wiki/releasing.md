@@ -18,13 +18,14 @@ together; one tag covers both languages.
 
 1. `npx tsc`, `npx vitest run`, `cd python; python -m pytest`: green.
 2. If a wire fixture changed, the diff in `fixtures/` is reviewed and intended.
-3. `node scripts/consumer-smoke.mjs` passes on the commit being tagged.
+3. `node scripts/consumer-smoke.mjs` passes on the commit being tagged, and `cd rust; cargo test` is green.
 4. `node scripts/push-to-app.mjs` into each app, then in each app: `npx tsc
    --noEmit`, `npm test`, `cd sidecar; python -m pytest`, `cd src-tauri; cargo
    test --lib`.
 5. Update `CHANGELOG.md`, commit, tag `vX.Y.Z`, push both.
-6. In each app, on a branch: change the pin in `package.json` and
-   `sidecar/requirements*.txt`, `npm install`, run that app's CI. Merge.
+6. In each app, on a branch: change the pin in `package.json`,
+   `sidecar/requirements*.txt` and the `mps-youtube-signin` tag in
+   `src-tauri/Cargo.toml` (then `cargo update -p mps-youtube-signin`), `npm install`, run that app's CI. Merge.
 7. Record the new pin in `MPS/wiki/lineage.md` if either app stays behind.
 
 A tag is never moved after an app has pinned it. Fix forward with a new patch
