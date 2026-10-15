@@ -63,6 +63,7 @@ src/               TypeScript source, shipped as-is (no build step)
   takes/           which recorded takes are shown / heard (pure functions)
   shortcuts/       global keydown handler (ignores typing, chords, repeats)
   loops/           named loops and bar sections (pure functions)
+  pack/            practice pack manifest and reference pitch: reader and rules (writer is python/src/mps_core/pack.py)
   lyrics/          types, timing, ipc, store
   youtube/         cookiesSource, isSessionExpiredError, sign-in/out IPC wrappers
 python/            pip package mps-core (src/mps_core, tests/)

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.0
+
+The practice pack, the file a laptop app writes and the phone app reads (design: `MPS/wiki/pocket-practice-design.md`):
+- Python `mps_core.pack`: `build_manifest`, `validate_manifest`, `manifest_files`, `write_pack` (atomic zip, m4a stored and JSON deflated, refuses a manifest whose files are missing or extra), `read_manifest`, `decimate_reference` (the analysis pitch line on a fixed 20 ms grid, 0 where unvoiced), `encode_aac` (ffmpeg, runner injectable) and `PackError`. Schema 1.
+- TypeScript `@giamat90/mps-core/pack`: `parseManifest` (the same rules, a newer schema is refused with a message asking for an update), `parseReference`, `referenceAt`, `packFiles`, `PackError`, `PACK_SCHEMA`, `MAX_LOOPS` and the types.
+- `fixtures/pack_manifest.json` and `fixtures/pack_reference.json`, written by the Python tests and read by the TypeScript tests, so the two sides cannot drift.
 ## 0.9.1
 
 TypeScript (`@giamat90/mps-core`), `pitch` fast path only; the exact path and the API are unchanged:
