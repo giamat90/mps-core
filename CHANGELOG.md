@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.0
+
+TypeScript (`@giamat90/mps-core`):
+- `pitch`: `autocorrelatePitch(samples, sampleRate)`, the pitch of one window of mono samples in Hz, or `null` when it is too quiet (RMS under 0.01), not periodic enough (clarity under 0.25) or outside 65-1400 Hz. It is the algorithm VPS's live `PitchDetector` ran inside the class, moved out unchanged apart from returning `null` instead of `-1`: no `AudioContext`, no state, so it also runs where there is no Web Audio (a React Native app). Cost is quadratic in the window length, about 2 million multiply-adds at 2048 samples; measure before calling it every frame on a slow JavaScript engine. VPS keeps `PitchDetector` as a thin wrapper that supplies an AnalyserNode's samples. SPS has no live pitch and stays on 0.7.0.
+
 ## 0.7.0
 
 Rust (`mps-youtube-signin`, new, `rust/youtube-signin`, the first Rust crate here):
