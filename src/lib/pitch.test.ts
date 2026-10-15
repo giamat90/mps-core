@@ -113,3 +113,75 @@ describe("autocorrelatePitch with { fast: true }", () => {
   });
 });
 
+// A glottal-like pulse train through formant resonators. With the first formant
+// on the 2nd or 3rd harmonic (what head voice does) the strongest periodicity
+// in the window is at half or a third of the period, which an earlier fast
+// path read an octave too high. Above about 650 Hz with the formant on the 3rd
+// harmonic the fast path can still read an octave up (a known limit).
+function formantVoice(f0: number, f1: number, sampleRate: number, highPassHz = 0, length = 2048) {
+  const n = length * 2;
+  const pulses = new Float32Array(n);
+  let phase = 0;
+  let tilt = 0;
+  for (let i = 0; i < n; i++) {
+    phase += f0 / sampleRate;
+    if (phase >= 1) {
+      phase -= 1;
+      tilt += 1;
+    }
+    tilt *= 0.97;
+    pulses[i] = tilt;
+  }
+  const out = new Float32Array(n);
+  for (const [k, fc] of [f1, Math.min(3800, f1 * 2.1), Math.min(4500, f1 * 3.3)].entries()) {
+    const r = Math.exp((-Math.PI * (60 + 30 * k)) / sampleRate);
+    const th = (2 * Math.PI * fc) / sampleRate;
+    const a1 = -2 * r * Math.cos(th);
+    const a2 = r * r;
+    let y1 = 0;
+    let y2 = 0;
+    for (let i = 0; i < n; i++) {
+      const v = (1 - r) * pulses[i] - a1 * y1 - a2 * y2;
+      out[i] += [1, 0.6, 0.3][k] * v;
+      y2 = y1;
+      y1 = v;
+    }
+  }
+  if (highPassHz > 0) {
+    const rc = 1 / (2 * Math.PI * highPassHz);
+    const a = rc / (rc + 1 / sampleRate);
+    let prevIn = 0;
+    let prevOut = 0;
+    for (let i = 0; i < n; i++) {
+      const v = a * (prevOut + out[i] - prevIn);
+      prevIn = out[i];
+      prevOut = v;
+      out[i] = v;
+    }
+  }
+  let peak = 0;
+  for (const v of out) peak = Math.max(peak, Math.abs(v));
+  const window = out.slice(length, length * 2);
+  for (let i = 0; i < window.length; i++) window[i] = (0.5 * window[i]) / peak;
+  return window;
+}
+
+describe("autocorrelatePitch with { fast: true } on head voice", () => {
+  const FAST = { fast: true } as const;
+
+  it.each([
+    [44100, 0],
+    [48000, 0],
+    [48000, 250],
+  ])("keeps the octave when a formant sits on the 2nd or 3rd harmonic (%i Hz, high-pass %i Hz)", (sr, hp) => {
+    for (const multiple of [2, 3]) {
+      for (let f0 = 190; f0 <= 640; f0 *= 1.07) {
+        const x = formantVoice(f0, multiple * f0, sr, hp);
+        const got = autocorrelatePitch(x, sr, FAST);
+        expect(got, `f0 ${f0.toFixed(0)} F1 ${multiple}x`).not.toBeNull();
+        expect(Math.abs(Math.log2(got! / f0)), `f0 ${f0.toFixed(0)} F1 ${multiple}x`).toBeLessThan(0.05);
+      }
+    }
+  });
+});
+
