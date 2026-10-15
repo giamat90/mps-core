@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.1
+
+TypeScript (`@giamat90/mps-core`), package metadata only, no code change:
+- `react` peer range is `^19.2.0` (was `^19.2.4`) and `zustand` is `^5.0.0` (was `^5.0.12`). Found by the first React Native consumer (VPP, Expo SDK 55): Expo pins react 19.2.0, so `npm install` failed with ERESOLVE against `^19.2.4`.
+- The three Tauri packages and `zustand` are now optional peers (`peerDependenciesMeta`). A consumer that imports only `pitch` or `music` (the phone app) is no longer asked to install Tauri; VPS and SPS still install them because they use the modules that need them.
+
 ## 0.8.0
 
 TypeScript (`@giamat90/mps-core`):
