@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.0
+
+TypeScript (`@giamat90/mps-core`):
+- `pitch`: `autocorrelatePitch(samples, sampleRate, { fast: true })`. The exact path took **149 ms** (p95 152 ms) for a 2048-sample window on a Moto G 5G in Hermes, three times the 46 ms window, so the phone's UI fell seconds behind. The fast path averages the window down to about 11 kHz, correlates only over the lags a 65 Hz voice can have, and takes the first local maximum within 90 % of the strongest (an octave-down guard for the low rate). On 245 tones from 70 to 1300 Hz at 44.1 and 48 kHz (sine and harmonic) the worst error is 0.54 % (about 9 cents) with no octave errors and no misses, and it is about 27 times cheaper on V8. Off by default: VPS keeps the exact path. The exact path now accumulates each lag in a double and stores once (it used to round to float32 at every addition), so its last digits can differ from 0.8.x.
 ## 0.8.1
 
 TypeScript (`@giamat90/mps-core`), package metadata only, no code change:
