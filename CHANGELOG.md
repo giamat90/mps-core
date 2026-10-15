@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.1
+
+TypeScript (`@giamat90/mps-core`), `pitch` fast path only; the exact path and the API are unchanged:
+- `{ fast: true }` read head voice an octave too high (reported from the first phone test: falsetto was right, head voice an octave up). Reproduced with synthetic voices, a pulse train through formant resonators with the first formant on the 2nd or 3rd harmonic and bandwidths of 45, 60 and 90 Hz, at 44.1 and 48 kHz, with and without a 250 Hz high-pass: 91.0 % correct and 55 octave-up errors, against 100 % for the exact path. Cause: "first local maximum within 90 % of the strongest" took the half or third period when the formant boosted that harmonic and left the fundamental weak.
+- The fast path now uses Praat's windowed autocorrelation (Hann window, each lag divided by the correlation of the window with itself), peak heights from the parabola through each peak, and the first peak within 98 % of the tallest. Formant-tuned head voice: **98.3 % correct, no octave-up errors** (20 octave-down, 11 no reading); harsh synthetic vowels 70-1300 Hz: 93.0 % against 87.2 % for the exact path; pure and harmonic tones 70-1300 Hz: 98.6 %, worst error 0.44 %. Cost is the same as 0.9.0 (the window correlation is cached per window length).
+- Known limit: a fundamental above about 650 Hz with the first formant on the 3rd harmonic can still read an octave up.
+
 ## 0.9.0
 
 TypeScript (`@giamat90/mps-core`):
