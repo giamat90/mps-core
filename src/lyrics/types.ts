@@ -38,6 +38,21 @@ export interface FoundLyrics {
   source: string;
 }
 
+/** One online result: the text to review, and how it compares with the song */
+export interface LyricsCandidate extends FoundLyrics {
+  /** Length of the recording the lyrics were written for (seconds), when known */
+  duration: number | null;
+  /** True when that length differs from the song's by more than the lookup tolerates */
+  lengthMismatch: boolean;
+}
+
+/** Every usable online result for a song, best match first */
+export interface LyricsSearch {
+  /** The text that was searched for, after the title was cleaned */
+  query: string;
+  candidates: LyricsCandidate[];
+}
+
 export interface LyricsProgress {
   songId: string;
   progress: number;

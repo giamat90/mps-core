@@ -77,6 +77,7 @@ const SURFACE: Record<string, string[]> = {
     "loadLyrics",
     "lyricsPlainText",
     "onLyricsProgress",
+    "searchLyrics",
     "syncLyrics",
     "useLyricsStore",
   ],

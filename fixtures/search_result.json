@@ -1,0 +1,23 @@
+{
+  "query": "Practice Song",
+  "candidates": [
+    {
+      "text": "hello world\nsecond line here",
+      "synced": true,
+      "title": "Practice Song",
+      "artist": "The Fixtures",
+      "duration": 201.0,
+      "source": "lrclib",
+      "lengthMismatch": false
+    },
+    {
+      "text": "hello world\nsecond line here\nhello world",
+      "synced": false,
+      "title": "Practice Song (Live)",
+      "artist": "The Fixtures",
+      "duration": 312.0,
+      "source": "lrclib",
+      "lengthMismatch": true
+    }
+  ]
+}

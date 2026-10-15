@@ -130,3 +130,50 @@ class TestFindLyrics:
     def test_a_malformed_reply_is_a_clear_error(self):
         with pytest.raises(lyrics.LyricsError, match="unexpected"):
             lyrics.find_lyrics("Song", duration=200, fetch=lambda url: {"message": "rate limited"})
+
+
+class TestSearchLyrics:
+    def test_lists_every_usable_result_best_match_first(self):
+        pool = [
+            cand(1, title="Song (Live)", duration=260),
+            cand(2, duration=201, synced=SYNCED),
+            cand(3, instrumental=True),
+            cand(4, plain=None, synced=None),
+            cand(5, duration=215),
+        ]
+        result = lyrics.search_lyrics("Song", duration=200, fetch=lambda url: pool)
+        assert result["query"] == "Song"
+        assert [c["title"] for c in result["candidates"]] == ["Song", "Song", "Song (Live)"]
+        assert [c["duration"] for c in result["candidates"]] == [201.0, 215.0, 260.0]
+
+    def test_a_wrong_length_entry_is_kept_and_flagged(self):
+        result = lyrics.search_lyrics("Song", duration=200, fetch=lambda url: [cand(1, duration=500)])
+        assert [c["lengthMismatch"] for c in result["candidates"]] == [True]
+
+    def test_a_close_or_unknown_length_is_not_flagged(self):
+        pool = [cand(1, duration=205), cand(2, duration=None)]
+        result = lyrics.search_lyrics("Song", duration=200, fetch=lambda url: pool)
+        assert [c["lengthMismatch"] for c in result["candidates"]] == [False, False]
+
+    def test_each_candidate_carries_its_own_text_so_choosing_needs_no_second_request(self):
+        pool = [cand(1, duration=200, plain="plain one"), cand(2, duration=200, synced=SYNCED)]
+        result = lyrics.search_lyrics("Song", duration=200, fetch=lambda url: pool)
+        assert result["candidates"][0]["synced"] is True
+        assert result["candidates"][0]["text"] == "First line\nSecond line\nFirst line"
+        assert (result["candidates"][1]["synced"], result["candidates"][1]["text"]) == (False, "plain one")
+
+    def test_the_lookup_uses_the_identity_it_is_given(self):
+        urls = []
+        lyrics.search_lyrics("Song", artist="Band", duration=200, fetch=lambda url: urls.append(url) or [cand(1)])
+        assert "Band+Song" in urls[0]
+
+    def test_nothing_usable_is_not_found(self):
+        with pytest.raises(lyrics.LyricsError, match="No lyrics found"):
+            lyrics.search_lyrics("Song", duration=200, fetch=lambda url: [cand(1, instrumental=True)])
+
+    def test_a_network_failure_is_a_clear_error(self):
+        def boom(url):
+            raise urllib.error.URLError("no route")
+
+        with pytest.raises(lyrics.LyricsError, match="reach"):
+            lyrics.search_lyrics("Song", duration=200, fetch=boom)

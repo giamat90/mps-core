@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.11.0
+
+Choosing among online lyrics results (the lookup used to return only its single best guess):
+- Python `mps_core.lyrics.search_lyrics(title, artist, duration, ...)`: every usable LRCLIB result, best match first, each with its own text. Entries of the wrong length are kept and flagged `lengthMismatch` (a live or acoustic version rarely matches the studio length), where `find_lyrics` drops them. `find_lyrics` and `pick_best` behave as before.
+- TypeScript `@giamat90/mps-core/lyrics`: `searchLyrics(songId)` (command `search_lyrics`), types `LyricsCandidate` and `LyricsSearch`, and store state `candidates` / `chosen` with `searchOnline(songId)` (fills the draft with the best match and keeps the rest) and `chooseCandidate(index)`. `findLyrics` / `findOnline` are unchanged.
+- `fixtures/search_result.json`, written by the Python tests and read by the TypeScript tests.
+- Each app's Rust must register `search_lyrics(songId)`; the sidecar dispatches `search_lyrics` with the same arguments as `find_lyrics`.
+
 ## 0.10.0
 
 The practice pack, the file a laptop app writes and the phone app reads (design: `MPS/wiki/pocket-practice-design.md`):

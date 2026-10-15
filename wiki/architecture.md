@@ -35,7 +35,7 @@ different behaviour from shared code, the difference is passed in:
 | Difference | How it is passed |
 |---|---|
 | Name on the network, data directory, test-engine variable (Python) | `AppIdentity(name, url, data_dir, env_prefix)` |
-| Which Tauri commands exist (TypeScript) | The IPC wrappers *are* the contract: each app's Rust must implement `load_lyrics`, `sync_lyrics`, `find_lyrics`, `delete_lyrics`; each app's IPC contract test reads the package's wrappers next to its own |
+| Which Tauri commands exist (TypeScript) | The IPC wrappers *are* the contract: each app's Rust must implement `load_lyrics`, `sync_lyrics`, `find_lyrics`, `search_lyrics`, `delete_lyrics`; each app's IPC contract test reads the package's wrappers next to its own |
 | Anything about one app's data model | Stays in the app (SPS's `canSyncLyrics(stems)` is an example: SPS songs may lack a vocals stem, VPS songs may not) |
 
 ## What is shared, and what deliberately is not

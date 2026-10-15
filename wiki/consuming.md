@@ -91,7 +91,7 @@ const tauriTs = read("src/lib/tauri.ts") + "\n" + read("node_modules/@giamat90/m
 ```
 
 The Rust side must register `load_lyrics(songId)`, `sync_lyrics(songId, text, source?)`,
-`find_lyrics(songId)`, `delete_lyrics(songId)` and emit `lyrics-progress`
+`find_lyrics(songId)`, `search_lyrics(songId)`, `delete_lyrics(songId)` and emit `lyrics-progress`
 (`{songId, progress, stage}`).
 
 ## Rust
@@ -144,6 +144,7 @@ APP = AppIdentity(
 advisory = check_yt_dlp_freshness(APP)
 result = lyrics.align_lyrics(vocals_path, text, on_progress=cb, models_dir=cmd.get("modelsDir"), app=APP)
 found = lyrics.find_lyrics(title, artist=None, duration=duration, app=APP)
+search = lyrics.search_lyrics(title, artist=None, duration=duration, app=APP)   # {"query", "candidates": [...]}
 ```
 
 `yt_importer` reads the floor with `from mps_core.version_check import MIN_YT_DLP_VERSION`.

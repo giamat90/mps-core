@@ -50,3 +50,26 @@ def test_find_result_matches_the_pinned_wire_format():
     ]
     result = lyrics.find_lyrics("Practice Song (Official Video)", duration=200.0, fetch=lambda url: candidates)
     check("find_result.json", result)
+
+
+def test_search_result_matches_the_pinned_wire_format():
+    candidates = [
+        {
+            "trackName": "Practice Song (Live)",
+            "artistName": "The Fixtures",
+            "duration": 312.0,
+            "instrumental": False,
+            "syncedLyrics": None,
+            "plainLyrics": "hello world\nsecond line here\nhello world",
+        },
+        {
+            "trackName": "Practice Song",
+            "artistName": "The Fixtures",
+            "duration": 201.0,
+            "instrumental": False,
+            "syncedLyrics": "[00:01.00] hello world\n[00:03.50] second line here",
+            "plainLyrics": "hello world\nsecond line here",
+        },
+    ]
+    result = lyrics.search_lyrics("Practice Song (Official Video)", duration=200.0, fetch=lambda url: candidates)
+    check("search_result.json", result)

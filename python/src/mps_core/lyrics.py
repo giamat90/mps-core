@@ -588,10 +588,13 @@ def _name_tokens(s: str) -> set:
     return set(re.findall(r"[a-z0-9]+", s.lower()))
 
 
-def pick_best(candidates: list, duration, title: str):
-    """The LRCLIB result most likely to be this recording, or None."""
+def _rank(candidates: list, duration, title: str, allow_wrong_length: bool) -> list:
+    """Usable candidates as (score, index, candidate, length_delta), best first.
+
+    length_delta is None when the song's length or the entry's is unknown.
+    """
     want = _name_tokens(title)
-    best = None
+    ranked = []
     for index, c in enumerate(candidates):
         if not isinstance(c, dict) or c.get("instrumental"):
             continue
@@ -603,21 +606,29 @@ def pick_best(candidates: list, duration, title: str):
             cand_duration = float(c["duration"]) if c.get("duration") is not None else None
         except (TypeError, ValueError):
             cand_duration = None
+        length_delta = None
         if duration is None:
             delta = 0.0
         elif cand_duration is None:
             delta = UNKNOWN_DURATION_PENALTY_S
         else:
-            delta = abs(cand_duration - float(duration))
-            if delta > MAX_DURATION_DELTA_S:
+            length_delta = abs(cand_duration - float(duration))
+            delta = length_delta
+            if delta > MAX_DURATION_DELTA_S and not allow_wrong_length:
                 continue
 
         name = _name_tokens(c.get("trackName") or "")
         overlap = len(name & want) / len(name) if name else 0.5
         score = delta + (0.0 if has_synced else 2.0) + 5.0 * (1.0 - overlap)
-        if best is None or score < best[0]:
-            best = (score, index, c)
-    return best[2] if best else None
+        ranked.append((score, index, c, length_delta))
+    ranked.sort(key=lambda r: (r[0], r[1]))
+    return ranked
+
+
+def pick_best(candidates: list, duration, title: str):
+    """The LRCLIB result most likely to be this recording, or None."""
+    ranked = _rank(candidates, duration, title, allow_wrong_length=False)
+    return ranked[0][2] if ranked else None
 
 
 def _fetch_json(url: str, user_agent: str = DEFAULT_USER_AGENT):
@@ -626,8 +637,8 @@ def _fetch_json(url: str, user_agent: str = DEFAULT_USER_AGENT):
         return json.loads(resp.read().decode("utf-8"))
 
 
-def find_lyrics(title: str, artist: str | None = None, duration: float | None = None, fetch=None,
-                app: AppIdentity | None = None) -> dict:
+def _lookup(title: str, artist: str | None, fetch, app: AppIdentity | None):
+    """(query, raw LRCLIB results) for a title and artist."""
     query = clean_title(title)
     if artist and artist.lower() not in query.lower():
         query = f"{artist} {query}"
@@ -640,18 +651,46 @@ def find_lyrics(title: str, artist: str | None = None, duration: float | None = 
         raise LyricsError(f"Could not reach the lyrics service: {e}") from e
     if not isinstance(data, list):
         raise LyricsError("The lyrics service returned an unexpected reply.")
+    return query, data
 
-    best = pick_best(data, duration, query)
-    if best is None:
-        raise LyricsError(f"No lyrics found for \"{query}\".")
 
-    synced = (best.get("syncedLyrics") or "").strip()
-    text = strip_timestamps(synced) if synced else (best.get("plainLyrics") or "").strip()
+def _found(c: dict) -> dict:
+    synced = (c.get("syncedLyrics") or "").strip()
+    text = strip_timestamps(synced) if synced else (c.get("plainLyrics") or "").strip()
     return {
         "text": text,
         "synced": bool(synced),
-        "title": best.get("trackName") or "",
-        "artist": best.get("artistName") or "",
-        "duration": best.get("duration"),
+        "title": c.get("trackName") or "",
+        "artist": c.get("artistName") or "",
+        "duration": c.get("duration"),
         "source": "lrclib",
     }
+
+
+def find_lyrics(title: str, artist: str | None = None, duration: float | None = None, fetch=None,
+                app: AppIdentity | None = None) -> dict:
+    query, data = _lookup(title, artist, fetch, app)
+    best = pick_best(data, duration, query)
+    if best is None:
+        raise LyricsError(f"No lyrics found for \"{query}\".")
+    return _found(best)
+
+
+def search_lyrics(title: str, artist: str | None = None, duration: float | None = None, fetch=None,
+                  app: AppIdentity | None = None) -> dict:
+    """Every usable LRCLIB result for the user to choose from, best match first.
+
+    Unlike `find_lyrics`, entries of the wrong length are kept, flagged with
+    `lengthMismatch`: a live or acoustic version rarely matches the studio
+    length, and the user can tell which one is theirs.
+    """
+    query, data = _lookup(title, artist, fetch, app)
+    ranked = _rank(data, duration, query, allow_wrong_length=True)
+    if not ranked:
+        raise LyricsError(f"No lyrics found for \"{query}\".")
+    candidates = []
+    for _score, _index, c, length_delta in ranked:
+        found = _found(c)
+        found["lengthMismatch"] = length_delta is not None and length_delta > MAX_DURATION_DELTA_S
+        candidates.append(found)
+    return {"query": query, "candidates": candidates}

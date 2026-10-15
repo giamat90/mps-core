@@ -6,7 +6,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { activeLineIndex, activeWordIndex, lineSeekTime } from "../src/lyrics/timing";
-import type { FoundLyrics, LyricLine, LyricWord, Lyrics } from "../src/lyrics/types";
+import type { FoundLyrics, LyricLine, LyricWord, Lyrics, LyricsCandidate } from "../src/lyrics/types";
 
 const fixture = (name: string) => JSON.parse(readFileSync(join(resolve(__dirname, ".."), "fixtures", name), "utf8"));
 
@@ -15,6 +15,11 @@ const fixture = (name: string) => JSON.parse(readFileSync(join(resolve(__dirname
 const WORD_KEYS: Record<keyof LyricWord, true> = { text: true, start: true, end: true, score: true };
 const LINE_KEYS: Record<keyof LyricLine, true> = { text: true, start: true, end: true, score: true, words: true };
 const FOUND_KEYS: Record<keyof FoundLyrics, true> = { text: true, synced: true, title: true, artist: true, source: true };
+const CANDIDATE_KEYS: Record<keyof LyricsCandidate, true> = {
+  ...FOUND_KEYS,
+  duration: true,
+  lengthMismatch: true,
+};
 // Fields the shell adds when it persists an alignment as `lyrics.json`.
 const PERSISTED_BY_SHELL: (keyof Lyrics)[] = ["version", "source", "text", "alignedAt"];
 
@@ -81,5 +86,29 @@ describe("sidecar find_lyrics reply", () => {
     expect(typeof reply.synced).toBe("boolean");
     expect(typeof reply.title).toBe("string");
     expect(typeof reply.artist).toBe("string");
+  });
+});
+
+describe("sidecar search_lyrics reply", () => {
+  const reply = fixture("search_result.json") as { query: string; candidates: Record<string, unknown>[] };
+
+  it("has the query and a list of candidates", () => {
+    expect(typeof reply.query).toBe("string");
+    expect(reply.candidates.length).toBeGreaterThan(0);
+  });
+
+  it("gives every candidate exactly the fields LyricsCandidate declares", () => {
+    for (const c of reply.candidates) expect(sorted(c)).toEqual(sorted(CANDIDATE_KEYS));
+  });
+
+  it("uses the types the store reads, with the wrong-length entries flagged", () => {
+    for (const c of reply.candidates) {
+      expect(typeof c.text).toBe("string");
+      expect(typeof c.synced).toBe("boolean");
+      expect(typeof c.lengthMismatch).toBe("boolean");
+      expect(c.duration === null || typeof c.duration === "number").toBe(true);
+    }
+    expect(reply.candidates.some((c) => c.lengthMismatch === true)).toBe(true);
+    expect(reply.candidates[0].lengthMismatch).toBe(false);
   });
 });

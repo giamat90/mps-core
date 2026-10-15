@@ -21,6 +21,7 @@ describe("lyrics IPC wrappers send the exact command name and payload the Rust s
     ["syncLyrics", () => api.syncLyrics("s1", "la la", "lrclib"), "sync_lyrics",
       { songId: "s1", text: "la la", source: "lrclib" }],
     ["findLyrics", () => api.findLyrics("s1"), "find_lyrics", { songId: "s1" }],
+    ["searchLyrics", () => api.searchLyrics("s1"), "search_lyrics", { songId: "s1" }],
     ["deleteLyrics", () => api.deleteLyrics("s1"), "delete_lyrics", { songId: "s1" }],
   ];
 
