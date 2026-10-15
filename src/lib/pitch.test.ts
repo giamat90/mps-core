@@ -68,3 +68,48 @@ describe("autocorrelatePitch", () => {
     expect(autocorrelatePitch(x, 48000)).toBe(autocorrelatePitch(x, 48000));
   });
 });
+
+describe("autocorrelatePitch with { fast: true }", () => {
+  const FAST = { fast: true } as const;
+
+  it.each([44100, 48000, 16000])("agrees with the exact path within 1% on sines from 110 to 1318 Hz at %i Hz", (sr) => {
+    for (const f of [110, 196, 261.63, 440, 659.25, 880, 1318.5]) {
+      const x = sine(f, sr);
+      const exact = autocorrelatePitch(x, sr);
+      const fast = autocorrelatePitch(x, sr, FAST);
+      expect(exact, `exact ${f}`).not.toBeNull();
+      expect(fast, `fast ${f}`).not.toBeNull();
+      expect(Math.abs(fast! - f) / f, `fast ${f} at ${sr}`).toBeLessThan(0.01);
+    }
+  });
+
+  it("finds the fundamental of a harmonic-rich tone, not an overtone", () => {
+    for (const f0 of [110, 220, 330]) {
+      const got = autocorrelatePitch(voiceLike(f0, 48000), 48000, FAST);
+      expect(got, `${f0}`).not.toBeNull();
+      expect(Math.abs(got! - f0) / f0).toBeLessThan(0.02);
+    }
+  });
+
+  it("rejects what the exact path rejects: silence, noise, out of range, too short", () => {
+    expect(autocorrelatePitch(new Float32Array(2048), 48000, FAST)).toBeNull();
+    expect(autocorrelatePitch(sine(220, 48000, 0.005), 48000, FAST)).toBeNull();
+    expect(autocorrelatePitch(noise(), 48000, FAST)).toBeNull();
+    expect(autocorrelatePitch(sine(40, 48000), 48000, FAST)).toBeNull();
+    expect(autocorrelatePitch(sine(2000, 48000), 48000, FAST)).toBeNull();
+    expect(autocorrelatePitch(new Float32Array([0.5, 0.4]), 48000, FAST)).toBeNull();
+  });
+
+  it("is several times cheaper than the exact path", () => {
+    const x = voiceLike(220, 48000);
+    const time = (opts?: { fast: boolean }) => {
+      const t0 = performance.now();
+      for (let i = 0; i < 15; i++) autocorrelatePitch(x, 48000, opts);
+      return performance.now() - t0;
+    };
+    time();
+    time(FAST);
+    expect(time(FAST) * 4).toBeLessThan(time());
+  });
+});
+
