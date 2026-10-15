@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "app": "vps",
+  "songId": "11111111-2222-3333-4444-555555555555",
+  "rev": 1,
+  "createdAt": "2026-10-15T12:00:00Z",
+  "title": "Practice Song",
+  "artist": "The Fixtures",
+  "durationS": 201.5,
+  "bpm": 96.0,
+  "key": "A minor",
+  "metronomeOffsetS": 0.42,
+  "encoderDelayS": 0.0,
+  "tracks": [
+    {
+      "name": "vocals",
+      "file": "vocals.m4a"
+    },
+    {
+      "name": "instrumental",
+      "file": "instrumental.m4a"
+    }
+  ],
+  "variants": [
+    {
+      "semitones": -2,
+      "tracks": [
+        {
+          "name": "vocals",
+          "file": "pitched/-2/vocals.m4a"
+        },
+        {
+          "name": "instrumental",
+          "file": "pitched/-2/instrumental.m4a"
+        }
+      ]
+    }
+  ],
+  "reference": {
+    "file": "reference_pitch.json",
+    "hopS": 0.02
+  },
+  "lyrics": {
+    "file": "lyrics.json"
+  },
+  "loops": [
+    {
+      "name": "Chorus",
+      "start": 62.0,
+      "end": 94.5
+    }
+  ]
+}

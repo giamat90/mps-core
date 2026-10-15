@@ -27,6 +27,7 @@ const SURFACE: Record<string, string[]> = {
   ],
   "./music": ["A4_FREQUENCY", "A4_MIDI", "NOTE_NAMES", "frequencyToMidi", "frequencyToNote", "midiToFrequency"],
   "./pitch": ["autocorrelatePitch"],
+  "./pack": ["MAX_LOOPS", "PACK_SCHEMA", "PackError", "packFiles", "parseManifest", "parseReference", "referenceAt"],
   "./updater": ["useUpdaterStore"],
   "./panels": ["createPanelStore"],
   "./takes": ["EMPTY_SELECTION", "audibleTakes", "hideTake", "reconcileTakes", "showTake", "takeSilence", "toggleTake"],
