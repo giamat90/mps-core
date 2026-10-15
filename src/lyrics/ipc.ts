@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
-import type { FoundLyrics, Lyrics, LyricsProgress } from "./types";
+import type { FoundLyrics, Lyrics, LyricsProgress, LyricsSearch } from "./types";
 
 // Command names and argument keys here are a contract with each app's
 // src-tauri: the apps' IPC contract test reads this file and checks it against
@@ -19,6 +19,11 @@ export async function syncLyrics(songId: string, text: string, source?: "paste" 
 /** Look the song's lyrics up online; returns text for review, nothing is saved */
 export async function findLyrics(songId: string): Promise<FoundLyrics> {
   return invoke<FoundLyrics>("find_lyrics", { songId });
+}
+
+/** Like findLyrics, but returns every usable result so the user can choose */
+export async function searchLyrics(songId: string): Promise<LyricsSearch> {
+  return invoke<LyricsSearch>("search_lyrics", { songId });
 }
 
 export async function deleteLyrics(songId: string): Promise<void> {

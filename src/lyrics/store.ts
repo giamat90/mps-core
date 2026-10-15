@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { deleteLyrics, findLyrics, loadLyrics, onLyricsProgress, syncLyrics } from "./ipc";
-import type { Lyrics } from "./types";
+import { deleteLyrics, findLyrics, loadLyrics, onLyricsProgress, searchLyrics, syncLyrics } from "./ipc";
+import type { FoundLyrics, Lyrics, LyricsCandidate } from "./types";
 
 type Status = "idle" | "loading" | "finding" | "syncing";
 type DraftSource = "paste" | "lrclib";
@@ -16,10 +16,18 @@ interface LyricsState {
   stage: string;
   error: string | null;
   notice: string | null;
+  /** Results of the last online search, best first; empty when none was run */
+  candidates: LyricsCandidate[];
+  /** Index into `candidates` of the one now in the draft, or -1 */
+  chosen: number;
 
   load: (songId: string) => Promise<void>;
   setDraft: (text: string) => void;
   findOnline: (songId: string) => Promise<void>;
+  /** Search online: fill the draft with the best match and keep the rest to choose from */
+  searchOnline: (songId: string) => Promise<void>;
+  /** Put one of the search results in the draft */
+  chooseCandidate: (index: number) => void;
   sync: (songId: string) => Promise<void>;
   remove: (songId: string) => Promise<void>;
   clear: () => void;
@@ -35,7 +43,19 @@ const EMPTY = {
   stage: "",
   error: null,
   notice: null,
+  candidates: [] as LyricsCandidate[],
+  chosen: -1,
 };
+
+function describe(found: FoundLyrics): string {
+  return `${found.title}${found.artist ? ` by ${found.artist}` : ""}`;
+}
+
+function foundNotice(found: FoundLyrics): string {
+  return found.synced
+    ? `Found "${describe(found)}". Review the text, then sync.`
+    : `Found "${describe(found)}" as plain text. Check that every repeated chorus is written out in full, then sync.`;
+}
 
 function message(e: unknown): string {
   return e instanceof Error ? e.message : String(e);
@@ -57,27 +77,54 @@ export const useLyricsStore = create<LyricsState>((set, get) => ({
     }
   },
 
-  setDraft: (text) => set({ draft: text, error: null, notice: null }),
+  setDraft: (text) => set({ draft: text, error: null, notice: null, chosen: -1 }),
 
   findOnline: async (songId) => {
     set({ status: "finding", error: null, notice: null });
     try {
       const found = await findLyrics(songId);
       if (get().songId !== songId) return;
-      const what = `${found.title}${found.artist ? ` by ${found.artist}` : ""}`;
-      set({
-        draft: found.text,
-        draftSource: "lrclib",
-        status: "idle",
-        notice: found.synced
-          ? `Found "${what}". Review the text, then sync.`
-          : `Found "${what}" as plain text. Check that every repeated chorus is written out in full, then sync.`,
-      });
+      set({ draft: found.text, draftSource: "lrclib", status: "idle", notice: foundNotice(found) });
     } catch (e) {
       console.error("[lyrics] Lookup failed:", e);
       if (get().songId !== songId) return;
       set({ status: "idle", error: message(e) });
     }
+  },
+
+  searchOnline: async (songId) => {
+    set({ status: "finding", error: null, notice: null, candidates: [], chosen: -1 });
+    try {
+      const { candidates } = await searchLyrics(songId);
+      if (get().songId !== songId) return;
+      const best = candidates[0];
+      if (!best || best.lengthMismatch) {
+        set({
+          candidates,
+          status: "idle",
+          notice: "No result matches this song's length. Choose the one that is your version, or paste the lyrics.",
+        });
+        return;
+      }
+      set({
+        candidates,
+        chosen: 0,
+        draft: best.text,
+        draftSource: "lrclib",
+        status: "idle",
+        notice: candidates.length > 1 ? `${foundNotice(best)} ${candidates.length - 1} other result(s) below.` : foundNotice(best),
+      });
+    } catch (e) {
+      console.error("[lyrics] Search failed:", e);
+      if (get().songId !== songId) return;
+      set({ status: "idle", error: message(e) });
+    }
+  },
+
+  chooseCandidate: (index) => {
+    const picked = get().candidates[index];
+    if (!picked) return;
+    set({ draft: picked.text, draftSource: "lrclib", chosen: index, error: null, notice: foundNotice(picked) });
   },
 
   sync: async (songId) => {

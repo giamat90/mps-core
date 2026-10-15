@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { FoundLyrics, Lyrics } from "./types";
+import type { FoundLyrics, Lyrics, LyricsCandidate } from "./types";
 
 const h = vi.hoisted(() => ({
   api: {
     loadLyrics: vi.fn(),
     syncLyrics: vi.fn(),
     findLyrics: vi.fn(),
+    searchLyrics: vi.fn(),
     deleteLyrics: vi.fn(),
     onLyricsProgress: vi.fn(),
   },
@@ -35,6 +36,13 @@ const found = (extra: Partial<FoundLyrics> = {}): FoundLyrics => ({
   title: "A Song",
   artist: "A Band",
   source: "lrclib",
+  ...extra,
+});
+
+const candidate = (extra: Partial<LyricsCandidate> = {}): LyricsCandidate => ({
+  ...found(),
+  duration: 200,
+  lengthMismatch: false,
   ...extra,
 });
 
@@ -219,6 +227,95 @@ describe("findOnline", () => {
     expect(s.error).toContain("No lyrics found");
     expect(s.draft).toBe("mine");
     expect(s.status).toBe("idle");
+  });
+});
+
+describe("searchOnline", () => {
+  it("fills the draft with the best match and keeps every result to choose from", async () => {
+    useLyricsStore.setState({ songId: "s1" });
+    h.api.searchLyrics.mockResolvedValue({
+      query: "A Band A Song",
+      candidates: [candidate(), candidate({ text: "live a", title: "A Song (Live)", duration: 310, lengthMismatch: true })],
+    });
+    await useLyricsStore.getState().searchOnline("s1");
+    const s = useLyricsStore.getState();
+    expect(s.draft).toBe("line a\nline b");
+    expect(s.draftSource).toBe("lrclib");
+    expect(s.candidates).toHaveLength(2);
+    expect(s.chosen).toBe(0);
+    expect(s.notice).toContain("A Song");
+    expect(s.status).toBe("idle");
+  });
+
+  it("does not fill the draft when the only results are the wrong length", async () => {
+    useLyricsStore.setState({ songId: "s1", draft: "mine" });
+    h.api.searchLyrics.mockResolvedValue({ query: "q", candidates: [candidate({ lengthMismatch: true })] });
+    await useLyricsStore.getState().searchOnline("s1");
+    const s = useLyricsStore.getState();
+    expect(s.draft).toBe("mine");
+    expect(s.chosen).toBe(-1);
+    expect(s.candidates).toHaveLength(1);
+    expect(s.notice).toMatch(/length/i);
+  });
+
+  it("reports a failed search without touching the draft or the earlier results", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    useLyricsStore.setState({ songId: "s1", draft: "mine" });
+    h.api.searchLyrics.mockRejectedValue('No lyrics found for "X".');
+    await useLyricsStore.getState().searchOnline("s1");
+    const s = useLyricsStore.getState();
+    expect(s.error).toContain("No lyrics found");
+    expect(s.draft).toBe("mine");
+    expect(s.candidates).toEqual([]);
+    expect(s.status).toBe("idle");
+  });
+
+  it("ignores a reply for a song that is no longer open", async () => {
+    useLyricsStore.setState({ songId: "s1" });
+    h.api.searchLyrics.mockImplementation(async () => {
+      useLyricsStore.setState({ songId: "s2" });
+      return { query: "q", candidates: [candidate()] };
+    });
+    await useLyricsStore.getState().searchOnline("s1");
+    expect(useLyricsStore.getState().draft).toBe("");
+    expect(useLyricsStore.getState().candidates).toEqual([]);
+  });
+});
+
+describe("chooseCandidate", () => {
+  const two = [candidate(), candidate({ text: "other a\nother b", title: "A Song (Live)", synced: false })];
+
+  it("puts the chosen result in the draft and marks it", () => {
+    useLyricsStore.setState({ songId: "s1", candidates: two, chosen: 0, draft: "line a\nline b" });
+    useLyricsStore.getState().chooseCandidate(1);
+    const s = useLyricsStore.getState();
+    expect(s.draft).toBe("other a\nother b");
+    expect(s.chosen).toBe(1);
+    expect(s.draftSource).toBe("lrclib");
+    expect(s.notice).toContain("A Song (Live)");
+    expect(s.notice).toMatch(/chorus/i);
+  });
+
+  it("ignores an index that is not in the list", () => {
+    useLyricsStore.setState({ songId: "s1", candidates: two, chosen: 0, draft: "keep" });
+    useLyricsStore.getState().chooseCandidate(5);
+    expect(useLyricsStore.getState().draft).toBe("keep");
+    expect(useLyricsStore.getState().chosen).toBe(0);
+  });
+
+  it("editing the text un-marks the chosen result but keeps the list", () => {
+    useLyricsStore.setState({ songId: "s1", candidates: two, chosen: 1 });
+    useLyricsStore.getState().setDraft("my edit");
+    expect(useLyricsStore.getState().chosen).toBe(-1);
+    expect(useLyricsStore.getState().candidates).toHaveLength(2);
+  });
+
+  it("opening another song drops the results", async () => {
+    useLyricsStore.setState({ songId: "s1", candidates: two, chosen: 0 });
+    h.api.loadLyrics.mockResolvedValue(null);
+    await useLyricsStore.getState().load("s2");
+    expect(useLyricsStore.getState().candidates).toEqual([]);
+    expect(useLyricsStore.getState().chosen).toBe(-1);
   });
 });
 
