@@ -27,6 +27,7 @@ all of which both apps already have): `react`, `zustand`, `@tauri-apps/api`,
 | `@giamat90/mps-core/metronomeSync` | `computeMetronomePhase`, `countInDurationSeconds` |
 | `@giamat90/mps-core/zoomPan` | zoom/pan maths and constants |
 | `@giamat90/mps-core/music` | `NOTE_NAMES`, `midiToFrequency`, `frequencyToMidi`, `frequencyToNote` |
+| `@giamat90/mps-core/pitch` | `autocorrelatePitch(samples, sampleRate)`: Hz or `null` for one window of mono samples; the caller supplies the samples (VPS: an AnalyserNode in `PitchDetector`) |
 | `@giamat90/mps-core/updater` | `useUpdaterStore` |
 | `@giamat90/mps-core/panels` | `createPanelStore` (headless: visibility and order; the app renders its own menu, drag handles and decides what each panel is) |
 | `@giamat90/mps-core/windows` | detachable panels: `definePanelWindows`, `startMainBridge`, `createDetachedBridge`, `RemoteClock`, `decideDrop`, `createDockGesture`, `createDetachedStore`, `panelsToClose`, and the guards (see below) |

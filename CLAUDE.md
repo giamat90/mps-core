@@ -10,8 +10,11 @@ exposes functions; each app wraps them in its own `#[tauri::command]`s).
 `wiki/README.md`, then the page for what you are changing. Cross-project context
 (why the apps exist, what is ported where) is in `MPS/wiki/` and `MPS/CLAUDE.md`.
 
-### 2. Code belongs here only if both apps need it unchanged
-A module goes in this repository when both apps run the same code. If the apps
+### 2. Code belongs here only if more than one product needs it unchanged
+A module goes in this repository when two products run the same code: VPS and
+SPS today, and from `pitch` on also the planned phone app VPP (a React Native
+app, so nothing here may assume a DOM or Web Audio unless the module says so;
+see `MPS/wiki/pocket-practice-design.md`). If the apps
 need different behaviour, the difference is a parameter (see `AppIdentity`), not
 a fork and not an `if (app === "vps")`. If only one app needs it, it stays in that
 app. Check `MPS/wiki/feature-parity.md` for intentional divergence before moving
@@ -53,7 +56,7 @@ is allowed, but say so in `MPS/wiki/lineage.md`).
 ```
 src/               TypeScript source, shipped as-is (no build step)
   audio/           metronome, recorder
-  lib/             metronomeSync, zoomPan, music
+  lib/             metronomeSync, zoomPan, music, pitch
   updater/         auto-update store
   panels/          headless show/hide and order store for optional page panels
   windows/         detachable panels: protocol, remote clock, bridges, drag gestures

@@ -92,6 +92,8 @@ equals it.
 
 **The first Rust crate is a git dependency in a subdirectory.** `rust/youtube-signin` (0.7.0) is a Cargo package the apps name by repository and tag, so one tag still covers all three languages. Cargo locates the package inside the repository by name; the apps' `Cargo.lock` records the exact commit. What differs per app (the data directory) is a parameter; what is an app's alone (the `#[tauri::command]` wrappers, the invoke handler that rejects the sign-in window) stays in the app. The crate is generic over the Tauri runtime and its pure logic (cookie file format, signed-in detection, the navigation allowlist) takes plain strings so its tests need no window. Its CI job runs on Windows, where the webview crates build without system packages.
 
+**`pitch` is the first module whose second consumer is not SPS.** SPS has no live pitch; the second user is the planned phone app VPP (React Native, no Web Audio). It is shared because the algorithm is a pure function of a sample window, and it was kept free of `AudioContext` on purpose: the `PitchDetector` class that owns the AnalyserNode stays in VPS. It was moved unchanged (same thresholds, same quadratic cost); making it faster for a phone (lag-limited or FFT-based correlation) is a separate change that has to be measured on a device first, because it can shift results.
+
 ## Failure modes this design has, and what covers them
 
 | Risk | Cover |
