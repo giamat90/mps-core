@@ -1805,6 +1805,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "mps-detached-windows"
+version = "0.1.0"
+dependencies = [
+ "log",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tempfile",
+]
+
+[[package]]
+name = "mps-sidecar"
+version = "0.1.0"
+dependencies = [
+ "log",
+ "serde",
+ "serde_json",
+ "tempfile",
+]
+
+[[package]]
 name = "mps-youtube-signin"
 version = "0.7.0"
 dependencies = [

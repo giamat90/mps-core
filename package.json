@@ -20,6 +20,7 @@
     "./takes": "./src/takes/index.ts",
     "./shortcuts": "./src/shortcuts/index.ts",
     "./loops": "./src/loops/index.ts",
+    "./punch": "./src/punch/index.ts",
     "./youtube": "./src/youtube/index.ts"
   },
   "files": [

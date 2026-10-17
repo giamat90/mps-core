@@ -84,6 +84,14 @@ const SURFACE: Record<string, string[]> = {
     "renameLoop",
     "validateLoop",
   ],
+  "./punch": [
+    "MIN_HANDLE_GAP_S",
+    "MIN_REGION_S",
+    "finishPunchDrag",
+    "grabPunchEdge",
+    "startPunchDrag",
+    "updatePunchPreview",
+  ],
   "./lyrics": [
     "LINE_HOLD_S",
     "LINE_LEAD_IN_S",

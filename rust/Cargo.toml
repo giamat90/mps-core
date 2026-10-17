@@ -1,3 +1,3 @@
 [workspace]
-members = ["youtube-signin"]
+members = ["youtube-signin", "sidecar", "detached-windows"]
 resolver = "2"

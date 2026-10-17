@@ -27,6 +27,7 @@ together; one tag covers both languages.
    `sidecar/requirements*.txt` and the `mps-youtube-signin` tag in
    `src-tauri/Cargo.toml` (then `cargo update -p mps-youtube-signin`), `npm install`, run that app's CI. Merge.
 7. Record the new pin in `MPS/wiki/lineage.md` if either app stays behind.
+8. A release that adds a Rust crate (`mps-sidecar`, `mps-detached-windows`): in each app replace its `path = "..."` dependency with `git` + `tag` and run `cargo update -p <crate>` in the same change as the pin bump.
 
 A tag is never moved after an app has pinned it. Fix forward with a new patch
 version.

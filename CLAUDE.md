@@ -64,11 +64,12 @@ src/               TypeScript source, shipped as-is (no build step)
   takes/           which recorded takes are shown / heard (pure functions)
   shortcuts/       global keydown handler (ignores typing, chords, repeats)
   loops/           named loops and bar sections (pure functions)
+  punch/           the punch region drag: which edge, live preview, what a release commits (pure functions)
   pack/            practice pack manifest and reference pitch: reader and rules (writer is python/src/mps_core/pack.py)
   lyrics/          types, timing, ipc, store
   youtube/         cookiesSource, isSessionExpiredError, sign-in/out IPC wrappers
 python/            pip package mps-core (src/mps_core, tests/)
-rust/              Cargo workspace; youtube-signin = crate mps-youtube-signin (git dependency of the apps)
+rust/              Cargo workspace, git dependencies of the apps: youtube-signin = mps-youtube-signin, sidecar = mps-sidecar (start the Python sidecar, JSON-lines protocol), detached-windows = mps-detached-windows (detachable panel windows)
 fixtures/          sidecar replies pinned by Python, read by TypeScript
 tests/             architecture, public API, wire fixtures (TypeScript)
 scripts/           consumer-smoke.mjs, push-to-app.mjs

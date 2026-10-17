@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+Two Rust crates move here from VPS and SPS, where `sidecar.rs` and `windows.rs` were the same code apart from a name and a table, and a TypeScript module takes the punch-region logic that `TimeRuler` (both apps) and VPS's piano roll each wrote out:
+- Rust `mps-sidecar` (0.1.0): `SidecarManager` starts the Python sidecar (`python main.py` from the source tree, else the installed PyInstaller binary), reads its JSON-lines replies on a thread and waits for `ready`; `SidecarMessage`, `find_sidecar_dir`, `spawn_command`. The one difference between the apps, the binary's name, is a `SidecarConfig`. Tests include a live fake sidecar.
+- Rust `mps-detached-windows` (0.1.0): the allowlist (`PanelSpec` table passed by the app), the window plan, remembered position (`WindowMemory::load(panels, data_dir)`), `detach_panel`, `dock_panel`, `close_detached_panel`, `cursor_over_main`, `close_all`. The apps keep their `#[tauri::command]` wrappers and their panel table. `tests/detachedWindows.contract.test.ts` pins its label prefix and `mps:docked` event against `@giamat90/mps-core/windows`.
+- TypeScript `@giamat90/mps-core/punch`: `grabPunchEdge`, `startPunchDrag`, `updatePunchPreview`, `finishPunchDrag`, `MIN_HANDLE_GAP_S`, `MIN_REGION_S` and the types `PunchMode`, `PunchDrag`, `PunchPreview`, `PunchCommit`.
+- Not tagged: the apps use the two crates through a local `path` until a tag exists. The versions of `package.json` and `python/pyproject.toml` are set when this is released (0.12.0, the spectrum module, is tagged; the next free version is 0.13.0).
+
 ## 0.12.0
 
 The short-term spectrum, so the phone shows the same curve as VPS (new `@giamat90/mps-core/spectrum`; nothing imports a DOM or Web Audio):

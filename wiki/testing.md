@@ -27,6 +27,10 @@ torch is deliberately not installed: the real wav2vec2 path is covered by the
 apps' local-only real-data tests (`sidecar/tests/test_lyrics_real.py`), which
 skip without the model weights.
 
+## Coverage
+
+TypeScript: `npx vitest run --coverage` (about 99.7 % lines). Python: `cd python; pip install pytest-cov; python -m pytest --cov=src/mps_core` (about 96 %). Rust: `cargo install cargo-llvm-cov`, `rustup component add llvm-tools-preview`, then `cd rust; cargo llvm-cov` (the new crates `mps-sidecar` about 77 %, `mps-detached-windows` about 46 %: the rest needs a live Tauri window). `tests/detachedWindows.contract.test.ts` reads the Rust crate and pins its constants against `src/windows`.
+
 ## Regenerating fixtures
 
 ```powershell
