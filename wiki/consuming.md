@@ -36,6 +36,10 @@ all of which both apps already have): `react`, `zustand`, `@tauri-apps/api`,
 | `@giamat90/mps-core/takes` | `toggleTake`, `showTake`, `hideTake`, `reconcileTakes`, `EMPTY_SELECTION`: pure transitions of `{ shown, active }`; `audibleTakes`: which of them are heard (all together / selected only, lane mutes, muted while recording). The app keeps the state in its player store and owns the audio |
 | `@giamat90/mps-core/lyrics` | lyric types, `activeLineIndex`/`activeWordIndex`/`lineSeekTime`/`lyricsPlainText`, the IPC wrappers, `useLyricsStore` |
 
+### Headless hooks
+
+`import { useKeyTranspose } from "@giamat90/mps-core/hooks"` and give it the store hook: `const t = useKeyTranspose(usePlayerStore)`. Every hook takes what it needs as arguments (a zustand store hook with the fields it reads, IPC functions, a file picker, a clock); the signature is in its source and the names are pinned in `tests/api.test.ts`. Drag-and-drop hooks (`useSortablePanels`, `useSortableSongRow`, ...) come from `@giamat90/mps-core/hooks/dnd` and need `@dnd-kit/core`, `@dnd-kit/sortable` and `@dnd-kit/utilities` installed. To add one: write the hook and its test here, export it from `src/hooks/index.ts`, list the name in `tests/api.test.ts`, then replace the logic in both apps' components with a call.
+
 ### Detachable panels
 
 `windows` is the half that is the same in both apps. What stays in each app: the

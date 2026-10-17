@@ -1,12 +1,23 @@
 # Changelog
 
-## Unreleased
+## 0.13.0
 
-Two Rust crates move here from VPS and SPS, where `sidecar.rs` and `windows.rs` were the same code apart from a name and a table, and a TypeScript module takes the punch-region logic that `TimeRuler` (both apps) and VPS's piano roll each wrote out:
-- Rust `mps-sidecar` (0.1.0): `SidecarManager` starts the Python sidecar (`python main.py` from the source tree, else the installed PyInstaller binary), reads its JSON-lines replies on a thread and waits for `ready`; `SidecarMessage`, `find_sidecar_dir`, `spawn_command`. The one difference between the apps, the binary's name, is a `SidecarConfig`. Tests include a live fake sidecar.
-- Rust `mps-detached-windows` (0.1.0): the allowlist (`PanelSpec` table passed by the app), the window plan, remembered position (`WindowMemory::load(panels, data_dir)`), `detach_panel`, `dock_panel`, `close_detached_panel`, `cursor_over_main`, `close_all`. The apps keep their `#[tauri::command]` wrappers and their panel table. `tests/detachedWindows.contract.test.ts` pins its label prefix and `mps:docked` event against `@giamat90/mps-core/windows`.
+The code that VPS and SPS each carried twice, apart from a name or a table, moves here; the apps keep only markup and their CSS.
+
+**Headless hooks (`@giamat90/mps-core/hooks`, and `.../hooks/dnd` for the ones that need `@dnd-kit`, an optional peer).** Each hook is the logic of a component that was in both apps (state, effects, handlers, pending and error handling); the store, the IPC calls and the dialogs are passed in. No markup and no CSS ship here, so the apps still render their own components with their own class names.
+- `popover-panels`: `usePopover`, `usePanelMenu`, `useDetachHandle`, `useDockHandle`, `useLoopsMenu`; in `hooks/dnd`: `useSortablePanels`, `useSortablePanel`, `usePanelGrip`, `PanelGripProvider`, `applyPanelDrop`, `sortablePanelClass`.
+- `devices-transport`: `useDeviceSelect` (`useMicSelect`, `useOutputSelect`), `useKeyTranspose`, `useLoopToggle`, `useTempoControl`, `useRecordButton`, `useTransportControls`, `useExportMix`, `useDownloadAll`.
+- `ruler-recording`: `useTimeRuler` (with `drawTimeRuler`), `useTakeList`, `useLatencyCalibration`, and the click-clap detector `detectClapLatency` (moved from VPS; SPS had an older inline copy that counted frames as 1 ms each, so SPS gets that fix).
+- `lyrics-library-actions`: `useLyricsPanel`, `useYouTubeCookies`, `useYouTubeImport`, `useDropZone`, `useUpdateDialog`.
+- `library-page-stores`: `useLibraryPage`, `useEditableText`, `libraryStateCreator` (the library store's logic, with the IPC injected), `createFriendlyError` (a rule table instead of a string-matching chain), `createSongFilter`, the library layout and drop rules; in `hooks/dnd`: `useLibrarySensors`, `libraryCollisionDetection`, `useSortableSongRow`, `useSortableFolder`, `useRootDropZone`.
+- `app-stores`: `createSettingsStore`, `installPlayerShortcuts` / `buildShortcuts`, `hiddenTrackTags`, `useMainBridgeHost` / `startMainBridgeHost`.
+- Tests use `jsdom` and `@testing-library/react`; `src/test/hookEnv.ts`, `fakeStore.ts` and `fakeCanvas.ts` are the helpers.
+
+**Rust crates and `punch`.**
+- `mps-sidecar` (0.1.0): `SidecarManager` starts the Python sidecar (`python main.py` from the source tree, else the installed PyInstaller binary), reads its JSON-lines replies on a thread and waits for `ready` (90 s); `SidecarMessage`, `find_sidecar_dir`, `spawn_command`. The one difference between the apps, the binary's name, is a `SidecarConfig`.
+- `mps-detached-windows` (0.1.0): the allowlist (a `PanelSpec` table passed by the app), the window plan, remembered position (`WindowMemory::load(panels, data_dir)`), `detach_panel`, `dock_panel`, `close_detached_panel`, `cursor_over_main`, `close_all`. The apps keep their `#[tauri::command]` wrappers. `tests/detachedWindows.contract.test.ts` pins its label prefix and `mps:docked` event against `@giamat90/mps-core/windows`.
 - TypeScript `@giamat90/mps-core/punch`: `grabPunchEdge`, `startPunchDrag`, `updatePunchPreview`, `finishPunchDrag`, `MIN_HANDLE_GAP_S`, `MIN_REGION_S` and the types `PunchMode`, `PunchDrag`, `PunchPreview`, `PunchCommit`.
-- Not tagged: the apps use the two crates through a local `path` until a tag exists. The versions of `package.json` and `python/pyproject.toml` are set when this is released (0.12.0, the spectrum module, is tagged; the next free version is 0.13.0).
+- Apps name the two crates by `git` + `tag = "v0.13.0"` like `mps-youtube-signin`.
 
 ## 0.12.0
 
