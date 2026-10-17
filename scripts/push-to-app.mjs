@@ -31,7 +31,7 @@ rmSync(dest, { recursive: true, force: true });
 cpSync(join(repo, "package.json"), join(dest, "package.json"), { recursive: true });
 cpSync(join(repo, "src"), join(dest, "src"), {
   recursive: true,
-  filter: (p) => !/\.test\.ts$/.test(p) && !p.replace(/\\/g, "/").includes("/src/test"),
+  filter: (p) => !/\.test\.ts$/.test(p) && !/\/src\/(test|[^/]+\/__fixtures__)(\/|$)/.test(p.replace(/\\/g, "/")),
 });
 console.log(`copied src/ into ${dest}`);
 

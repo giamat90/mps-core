@@ -57,6 +57,7 @@ is allowed, but say so in `MPS/wiki/lineage.md`).
 src/               TypeScript source, shipped as-is (no build step)
   audio/           metronome, recorder
   lib/             metronomeSync, zoomPan, music, pitch
+  spectrum/        short-term spectrum: FFT, dB curve helpers, F0 and formants (pure; tests use __fixtures__/synthVowel)
   updater/         auto-update store
   panels/          headless show/hide and order store for optional page panels
   windows/         detachable panels: protocol, remote clock, bridges, drag gestures

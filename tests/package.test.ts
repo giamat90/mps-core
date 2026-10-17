@@ -23,7 +23,7 @@ function walk(dir: string): string[] {
   });
 }
 
-const isTest = (f: string) => /\.test\.tsx?$/.test(f) || f.includes(`${sep}test${sep}`);
+const isTest = (f: string) => /\.test\.tsx?$/.test(f) || f.includes(`${sep}test${sep}`) || f.includes(`${sep}__fixtures__${sep}`);
 const sources = walk(join(root, "src")).filter((f) => /\.tsx?$/.test(f) && !isTest(f));
 
 function specifiers(file: string): string[] {

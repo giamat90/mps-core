@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.12.0
+
+The short-term spectrum, so the phone shows the same curve as VPS (new `@giamat90/mps-core/spectrum`; nothing imports a DOM or Web Audio):
+- `computeMagnitudeSpectrumDb` / `fft`: Blackman-windowed radix-2 FFT in dB on the Web Audio scale. The sine and cosine of each butterfly are now looked up in a table cached per size instead of computed every time (results unchanged, the tests pin them); on a phone, where nothing is JIT-compiled, that was most of the time.
+- `analyserCurvePoints`, `smoothSpectrumEnvelope`, `smoothSpectrumLight`, `freqToX` / `xToFreq`, `WEBAUDIO_TO_DBFS`, `SPECTRUM_MIN_DB` / `SPECTRUM_MAX_DB`, `SPECTRO_COLORMAP`: the log-frequency curve, its levels on the sidecar's dBFS scale, the smoothing and the thermal colours.
+- `estimateVoice` / `estimateFormants` with `analyseHarmonics`, `envelopeAutocorrelation` and `refineF0`: F0 and F1-F3 of one window (LPC on the envelope through the harmonics, Durand-Kerner roots, continuity between frames).
+- Moved from VPS (`src/lib/fft.ts`, `formants.ts`, `harmonicEnvelope.ts`, `pitchRefine.ts`, the pure half of `spectroUtils.ts`) with their tests and the synthetic-vowel fixture. The part of `spectroUtils.ts` that needs a canvas or the stored spectrogram stays in VPS.
 ## 0.11.0
 
 Choosing among online lyrics results (the lookup used to return only its single best guess):
