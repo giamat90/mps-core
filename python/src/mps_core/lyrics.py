@@ -47,6 +47,7 @@ MIN_EVIDENCE_RATIO = 0.5
 MAX_LATTICE_CELLS = 400_000_000
 MAX_DURATION_DELTA_S = 15.0
 UNKNOWN_DURATION_PENALTY_S = 8.0
+ARTIST_MISMATCH_PENALTY = 6.0
 
 
 class LyricsError(Exception):
@@ -588,19 +589,27 @@ def _name_tokens(s: str) -> set:
     return set(re.findall(r"[a-z0-9]+", s.lower()))
 
 
-def _rank(candidates: list, duration, title: str, allow_wrong_length: bool) -> list:
+def _has_lyrics(c) -> bool:
+    return (
+        isinstance(c, dict)
+        and not c.get("instrumental")
+        and bool((c.get("syncedLyrics") or "").strip() or (c.get("plainLyrics") or "").strip())
+    )
+
+
+def _rank(candidates: list, duration, title: str, allow_wrong_length: bool, artist: str | None = None) -> list:
     """Usable candidates as (score, index, candidate, length_delta), best first.
 
-    length_delta is None when the song's length or the entry's is unknown.
+    length_delta is None when the song's length or the entry's is unknown. With an
+    artist, an entry by someone else (a cover) ranks behind the right one.
     """
     want = _name_tokens(title)
+    want_artist = _name_tokens(artist) if artist else set()
     ranked = []
     for index, c in enumerate(candidates):
-        if not isinstance(c, dict) or c.get("instrumental"):
+        if not _has_lyrics(c):
             continue
         has_synced = bool((c.get("syncedLyrics") or "").strip())
-        if not (has_synced or (c.get("plainLyrics") or "").strip()):
-            continue
 
         try:
             cand_duration = float(c["duration"]) if c.get("duration") is not None else None
@@ -620,14 +629,17 @@ def _rank(candidates: list, duration, title: str, allow_wrong_length: bool) -> l
         name = _name_tokens(c.get("trackName") or "")
         overlap = len(name & want) / len(name) if name else 0.5
         score = delta + (0.0 if has_synced else 2.0) + 5.0 * (1.0 - overlap)
+        if want_artist:
+            by = _name_tokens(c.get("artistName") or "")
+            score += ARTIST_MISMATCH_PENALTY * (1.0 - len(by & want_artist) / len(want_artist))
         ranked.append((score, index, c, length_delta))
     ranked.sort(key=lambda r: (r[0], r[1]))
     return ranked
 
 
-def pick_best(candidates: list, duration, title: str):
+def pick_best(candidates: list, duration, title: str, artist: str | None = None):
     """The LRCLIB result most likely to be this recording, or None."""
-    ranked = _rank(candidates, duration, title, allow_wrong_length=False)
+    ranked = _rank(candidates, duration, title, allow_wrong_length=False, artist=artist)
     return ranked[0][2] if ranked else None
 
 
@@ -637,11 +649,7 @@ def _fetch_json(url: str, user_agent: str = DEFAULT_USER_AGENT):
         return json.loads(resp.read().decode("utf-8"))
 
 
-def _lookup(title: str, artist: str | None, fetch, app: AppIdentity | None):
-    """(query, raw LRCLIB results) for a title and artist."""
-    query = clean_title(title)
-    if artist and artist.lower() not in query.lower():
-        query = f"{artist} {query}"
+def _search(query: str, fetch, app: AppIdentity | None) -> list:
     url = LRCLIB_SEARCH_URL + "?" + urllib.parse.urlencode({"q": query})
     try:
         data = fetch(url) if fetch else _fetch_json(url, app.user_agent if app else DEFAULT_USER_AGENT)
@@ -651,7 +659,26 @@ def _lookup(title: str, artist: str | None, fetch, app: AppIdentity | None):
         raise LyricsError(f"Could not reach the lyrics service: {e}") from e
     if not isinstance(data, list):
         raise LyricsError("The lyrics service returned an unexpected reply.")
-    return query, data
+    return data
+
+
+def _lookup(title: str, artist: str | None, fetch, app: AppIdentity | None):
+    """(query, raw LRCLIB results) for a title and artist.
+
+    LRCLIB wants every word of the query in an entry, so an artist it spells
+    differently finds nothing at all; the title alone is then tried instead of
+    giving up.
+    """
+    title_query = clean_title(title)
+    artist = (artist or "").strip()
+    if not artist or artist.lower() in title_query.lower():
+        return title_query, _search(title_query, fetch, app)
+    query = f"{artist} {title_query}"
+    data = _search(query, fetch, app)
+    if any(_has_lyrics(c) for c in data):
+        return query, data
+    _log(f"nothing for \"{query}\"; trying the title alone")
+    return title_query, _search(title_query, fetch, app)
 
 
 def _found(c: dict) -> dict:
@@ -670,7 +697,7 @@ def _found(c: dict) -> dict:
 def find_lyrics(title: str, artist: str | None = None, duration: float | None = None, fetch=None,
                 app: AppIdentity | None = None) -> dict:
     query, data = _lookup(title, artist, fetch, app)
-    best = pick_best(data, duration, query)
+    best = pick_best(data, duration, query, artist)
     if best is None:
         raise LyricsError(f"No lyrics found for \"{query}\".")
     return _found(best)
@@ -685,7 +712,7 @@ def search_lyrics(title: str, artist: str | None = None, duration: float | None 
     length, and the user can tell which one is theirs.
     """
     query, data = _lookup(title, artist, fetch, app)
-    ranked = _rank(data, duration, query, allow_wrong_length=True)
+    ranked = _rank(data, duration, query, allow_wrong_length=True, artist=artist)
     if not ranked:
         raise LyricsError(f"No lyrics found for \"{query}\".")
     candidates = []
