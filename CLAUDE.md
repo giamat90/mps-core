@@ -11,6 +11,8 @@ exposes functions; each app wraps them in its own `#[tauri::command]`s).
 (why the apps exist, what is ported where) is in `MPS/wiki/` and `MPS/CLAUDE.md`.
 
 ### 2. Code belongs here only if more than one product needs it unchanged
+Components that both apps carry are shared as **headless hooks** (`src/hooks`): the logic lives here, the markup and the CSS class names stay in the apps. Never leave the same logic in two apps on purpose; a difference is an option of the hook.
+
 A module goes in this repository when two products run the same code: VPS and
 SPS today, and from `pitch` on also the planned phone app VPP (a React Native
 app, so nothing here may assume a DOM or Web Audio unless the module says so;
@@ -64,11 +66,13 @@ src/               TypeScript source, shipped as-is (no build step)
   takes/           which recorded takes are shown / heard (pure functions)
   shortcuts/       global keydown handler (ignores typing, chords, repeats)
   loops/           named loops and bar sections (pure functions)
+  punch/           the punch region drag: which edge, live preview, what a release commits (pure functions)
+  hooks/           headless hooks: the logic of components both apps carry (store, IPC and dialogs injected; no markup, no CSS); dnd.ts holds the ones needing @dnd-kit
   pack/            practice pack manifest and reference pitch: reader and rules (writer is python/src/mps_core/pack.py)
   lyrics/          types, timing, ipc, store
   youtube/         cookiesSource, isSessionExpiredError, sign-in/out IPC wrappers
 python/            pip package mps-core (src/mps_core, tests/)
-rust/              Cargo workspace; youtube-signin = crate mps-youtube-signin (git dependency of the apps)
+rust/              Cargo workspace, git dependencies of the apps: youtube-signin = mps-youtube-signin, sidecar = mps-sidecar (start the Python sidecar, JSON-lines protocol), detached-windows = mps-detached-windows (detachable panel windows)
 fixtures/          sidecar replies pinned by Python, read by TypeScript
 tests/             architecture, public API, wire fixtures (TypeScript)
 scripts/           consumer-smoke.mjs, push-to-app.mjs
