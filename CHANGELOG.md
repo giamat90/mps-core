@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+**The lyrics search finds the song by artist as well as title.** Imports left the artist empty, so the lookup searched the title alone and a common title found other bands' songs.
+- `mps_core.identity` (new, needs `mutagen`): `artist_from_file` (ID3/MP4/Vorbis tags), `artist_from_ytdlp` (the video's `artist`/`creator`, else the channel with `- Topic`, `VEVO` and `Official` stripped), `clean_channel`. The apps' sidecars return the result as `artist` from `process` and `import_yt`, and the shell stores it as `officialArtist`.
+- `lyrics`: when `Artist Title` finds nothing usable the lookup retries with the title alone (an artist LRCLIB spells differently no longer means no result); results by another artist rank behind the artist's own (`ARTIST_MISMATCH_PENALTY`).
+- Apps need this release for the new sidecar import (`mps_core.identity`); bump the pin together with the sidecar and Rust changes.
+
 ## 0.13.0
 
 The code that VPS and SPS each carried twice, apart from a name or a table, moves here; the apps keep only markup and their CSS.

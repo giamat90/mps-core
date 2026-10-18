@@ -167,6 +167,41 @@ class TestSearchLyrics:
         lyrics.search_lyrics("Song", artist="Band", duration=200, fetch=lambda url: urls.append(url) or [cand(1)])
         assert "Band+Song" in urls[0]
 
+    def test_an_artist_the_service_spells_differently_falls_back_to_the_title_alone(self):
+        urls = []
+
+        def fetch(url):
+            urls.append(url)
+            return [] if "Wrong+Name" in url else [cand(1)]
+
+        result = lyrics.search_lyrics("Song", artist="Wrong Name", duration=200, fetch=fetch)
+        assert len(urls) == 2
+        assert "Wrong+Name" not in urls[1]
+        assert result["query"] == "Song"
+        assert len(result["candidates"]) == 1
+
+    def test_a_hit_for_the_artist_does_not_trigger_a_second_request(self):
+        urls = []
+        lyrics.search_lyrics("Song", artist="Band", duration=200, fetch=lambda url: urls.append(url) or [cand(1)])
+        assert len(urls) == 1
+
+    def test_the_artists_own_version_ranks_before_a_cover(self):
+        pool = [cand(1, artist="Other Group", duration=200), cand(2, artist="Band", duration=203)]
+        result = lyrics.search_lyrics("Song", artist="Band", duration=200, fetch=lambda url: pool)
+        assert [c["artist"] for c in result["candidates"]] == ["Band", "Other Group"]
+
+    def test_without_an_artist_ranking_ignores_who_sings_it(self):
+        pool = [cand(1, artist="Other Group", duration=200), cand(2, artist="Band", duration=203)]
+        result = lyrics.search_lyrics("Song", duration=200, fetch=lambda url: pool)
+        assert [c["artist"] for c in result["candidates"]] == ["Other Group", "Band"]
+
+    def test_find_lyrics_also_falls_back_and_prefers_the_artist(self):
+        def fetch(url):
+            return [] if "Nobody" in url else [cand(1, artist="Other Group"), cand(2, artist="Band")]
+
+        assert lyrics.find_lyrics("Song", artist="Nobody", duration=200, fetch=fetch)["artist"] == "Other Group"
+        assert lyrics.find_lyrics("Song", artist="Band", duration=200, fetch=lambda url: [cand(1, artist="Other Group"), cand(2, artist="Band")])["artist"] == "Band"
+
     def test_nothing_usable_is_not_found(self):
         with pytest.raises(lyrics.LyricsError, match="No lyrics found"):
             lyrics.search_lyrics("Song", duration=200, fetch=lambda url: [cand(1, instrumental=True)])
