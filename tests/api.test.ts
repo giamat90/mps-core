@@ -79,7 +79,7 @@ const SURFACE: Record<string, string[]> = {
     "barsFromBarTaps", "barsFromBeatTaps", "cleanTaps", "clickSequence", "countInMap", "defaultGroups", "dominantMeter",
     "fillCycle", "fitTaps", "formatGroups", "formatSignature", "gridMap", "mergeBars", "meterRuns", "nextPulse", "pulseLevels",
     "pulseSeconds", "pulseTimes", "pulsesBetween", "relabelBars", "removeBar", "repeatingCycle", "replaceBars", "rescalePulse",
-    "round3", "setBarStart", "shiftBars", "splitBar", "unitBpm", "validateMap",
+    "round3", "setBarStart", "shiftBars", "shiftDownbeat", "splitBar", "unitBpm", "validateMap",
   ],
   "./loops": [
     "MAX_LOOPS",

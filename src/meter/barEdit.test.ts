@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  fillCycle, gridMap, mergeBars, relabelBars, removeBar, replaceBars, rescalePulse, setBarStart, shiftBars, splitBar,
+  fillCycle, gridMap, mergeBars, relabelBars, removeBar, replaceBars, rescalePulse, setBarStart, shiftBars, shiftDownbeat, splitBar,
 } from "./barEdit";
 import { validateMap, type BarMap } from "./barMap";
 
@@ -47,6 +47,26 @@ describe("moving a bar line", () => {
     expect(shiftBars(base(), 0.5).bars.map((b) => b.start)).toEqual([1.5, 3.5, 5.5]);
     expect(shiftBars(base(), -9).bars[0].start).toBe(0);
     expect(shiftBars(base(), 0)).toEqual(base());
+  });
+});
+
+describe("making another beat the first", () => {
+  it("moves every bar line a pulse later and the end with them, keeping every bar's length", () => {
+    const m = shiftDownbeat(base(), 1)!;
+    expect(m.bars.map((b) => b.start)).toEqual([1.5, 3.5, 5.5]);
+    expect(m.end).toBe(7.5);
+    expect(validateMap(m)).toBeNull();
+  });
+
+  it("moves them earlier for a negative count, and uses each bar's own pulse", () => {
+    const mixed = relabelBars(base(), 1, 1, { num: 8, den: 8 })!;
+    const m = shiftDownbeat(mixed, -1)!;
+    expect(m.bars.map((b) => b.start)).toEqual([0.5, 2.75, 4.5]);
+  });
+
+  it("refuses to move the first bar before the song, or by nothing", () => {
+    expect(shiftDownbeat(base(), -3)).toBeNull();
+    expect(shiftDownbeat(base(), 0)).toBeNull();
   });
 });
 

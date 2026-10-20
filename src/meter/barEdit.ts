@@ -52,6 +52,22 @@ export function shiftBars(map: BarMap, seconds: number): BarMap {
   return edited(map, map.bars.map((b) => ({ ...b, start: round3(b.start + dt) })));
 }
 
+/**
+ * Makes a different beat the first of every bar, `pulses` later (or earlier when negative): each bar line moves by that
+ * many of its own pulses and the end moves with the last one, so every bar keeps its length. Null when the first bar
+ * would start before the song.
+ */
+export function shiftDownbeat(map: BarMap, pulses: number): BarMap | null {
+  if (map.bars.length === 0 || pulses === 0) return null;
+  const bars = map.bars.map((b, i) => ({ ...b, start: round3(b.start + pulses * pulseSecondsOf(map, i)) }));
+  if (bars[0].start < 0) return null;
+  const last = map.bars.length - 1;
+  const next = edited(map, bars);
+  return validBars({ ...next, end: round3(map.end + pulses * pulseSecondsOf(map, last)) }) ? { ...next, end: round3(map.end + pulses * pulseSecondsOf(map, last)) } : null;
+}
+
+const pulseSecondsOf = (map: BarMap, i: number) => barSeconds(map, i) / map.bars[i].num;
+
 /** Cuts bar `index` in two at `time`, handing each half the pulses that fit it. Null when a half would be too short. */
 export function splitBar(map: BarMap, index: number, time: number): BarMap | null {
   const bar = map.bars[index];
