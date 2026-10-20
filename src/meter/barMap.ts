@@ -179,18 +179,22 @@ export function dominantMeter(map: BarMap): { num: number; den: number; share: n
 }
 
 /**
- * The shortest sequence of bar lengths (in pulses of one unit) that repeats through bars `from` to `to`
- * (inclusive), with at least two full turns; null when nothing repeats. 5,7,5,7 gives [5,7].
+ * The shortest sequence of bar lengths (in pulses) that repeats through bars `from` to `to` (inclusive), with at
+ * least two full turns; null when nothing repeats. 5,7,5,7 gives [5,7]. A tenth of the bars may break the pattern
+ * (a song's last bar is often cut short); the cycle is read from the bars that keep it.
  */
 export function repeatingCycle(map: BarMap, from = 0, to = map.bars.length - 1): number[] | null {
   const bars = map.bars.slice(from, to + 1);
   if (bars.length < 4) return null;
   const sizes = bars.map((b) => b.num * (8 / b.den));
+  const allowed = Math.floor(bars.length * 0.1);
   for (let period = 1; period <= Math.floor(sizes.length / 2) && period <= 8; period++) {
-    if (sizes.every((s, i) => s === sizes[i % period])) {
-      if (period === 1 && new Set(sizes).size === 1) return [bars[0].num];
-      return bars.slice(0, period).map((b) => b.num);
-    }
+    const votes = Array.from({ length: period }, () => new Map<number, number>());
+    sizes.forEach((s, i) => votes[i % period].set(s, (votes[i % period].get(s) ?? 0) + 1));
+    const modal = votes.map((v) => [...v.entries()].sort((a, b) => b[1] - a[1])[0][0]);
+    const broken = sizes.filter((s, i) => s !== modal[i % period]).length;
+    if (broken > allowed) continue;
+    return Array.from({ length: period }, (_, k) => bars.find((_bar, i) => i % period === k && sizes[i] === modal[k])!.num);
   }
   return null;
 }

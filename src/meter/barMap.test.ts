@@ -86,6 +86,17 @@ describe("what a song is made of", () => {
     expect(repeatingCycle(m)).toBeNull();
   });
 
+  it("still sees the cycle when the last bar is cut short", () => {
+    const sizes = [5, 7, 5, 7, 5, 7, 5, 7, 5, 7, 5, 7, 2];
+    const cut = map(sizes.map((n, i) => ({ start: i * 3, num: n, den: 8 })), 37);
+    expect(repeatingCycle(cut)).toEqual([5, 7]);
+  });
+
+  it("does not see a cycle in a song that keeps changing", () => {
+    const sizes = [4, 4, 7, 4, 5, 4, 6, 4, 3, 4];
+    expect(repeatingCycle(map(sizes.map((n, i) => ({ start: i * 3, num: n, den: 4 })), 30))).toBeNull();
+  });
+
   it("calls a steady meter a cycle of one", () => {
     const steady = map([0, 1, 2, 3].map((i) => ({ start: i * 2, num: 4, den: 4 })), 8);
     expect(repeatingCycle(steady)).toEqual([4]);
