@@ -3,14 +3,16 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { act, renderHook } from "../../test/hookEnv";
 import { createFakeStore } from "../../test/fakeStore";
 
-const m = vi.hoisted(() => ({ start: vi.fn(), stop: vi.fn() }));
+const m = vi.hoisted(() => ({ start: vi.fn(), stop: vi.fn(), startSequence: vi.fn() }));
 vi.mock("../../audio/metronome", () => ({ metronome: m }));
 
-import { formatDownbeat, useTempoControl, type TempoControlState } from "./useTempoControl";
+import { formatDownbeat, useTempoControl, type TempoControlState, type TempoControlOptions } from "./useTempoControl";
+import type { BarMap } from "../../meter";
 
 beforeEach(() => {
   m.start.mockClear();
   m.stop.mockClear();
+  m.startSequence.mockClear();
 });
 
 const make = (patch: Partial<TempoControlState> = {}) =>
@@ -169,5 +171,56 @@ describe("useTempoControl metronome", () => {
     expect(store.getState().setMetronomeOffset).toHaveBeenCalledWith(7.25);
     act(() => result.current.resetDownbeat());
     expect(store.getState().setMetronomeOffset).toHaveBeenLastCalledWith(0);
+  });
+});
+
+describe("useTempoControl following a bar map", () => {
+  const meterMap: BarMap = { version: 1, bars: [{ start: 0, num: 4, den: 4 }, { start: 2, num: 7, den: 8 }], end: 3.4, source: "edited" };
+  const withMap = (store: ReturnType<typeof make>, over: Partial<TempoControlOptions> = {}, time = () => 0) =>
+    renderHook(() => useTempoControl(store, { detectedBpm: 120, getCurrentTime: time, meterMap, ...over }));
+
+  it("starts the click on the map's pulses instead of a steady tempo", () => {
+    const store = make({ isPlaying: true });
+    const { result } = withMap(store);
+    act(() => result.current.toggleMetronome());
+    expect(m.start).not.toHaveBeenCalled();
+    expect(m.startSequence).toHaveBeenCalledTimes(1);
+    const [first, next] = m.startSequence.mock.calls[0];
+    expect(first).toEqual({ wait: 0, level: 0 });
+    expect(next()).toEqual({ wait: 0.5, level: 2 });
+  });
+
+  it("starts from where the playhead is, at the song's speed", () => {
+    const store = make({ isPlaying: true, playbackRate: 0.5 });
+    const { result } = withMap(store, {}, () => 1.2);
+    act(() => result.current.toggleMetronome());
+    const [first] = m.startSequence.mock.calls[0];
+    expect(first.wait).toBeCloseTo(0.6, 6);
+  });
+
+  it("clicks only the groups when asked", () => {
+    const store = make({ isPlaying: true });
+    const { result } = withMap(store, { clickDensity: "bars" });
+    act(() => result.current.toggleMetronome());
+    const [, next] = m.startSequence.mock.calls[0];
+    expect(next()).toEqual({ wait: 2, level: 0 });
+  });
+
+  it("starts again when the map is edited", () => {
+    const store = make({ isPlaying: true });
+    let current = meterMap;
+    const { result, rerender } = renderHook(() => useTempoControl(store, { detectedBpm: 120, getCurrentTime: () => 0, meterMap: current }));
+    act(() => result.current.toggleMetronome());
+    current = { ...meterMap, bars: [{ start: 0, num: 3, den: 4 }] };
+    rerender();
+    expect(m.startSequence).toHaveBeenCalledTimes(2);
+  });
+
+  it("stops when the map has nothing left to click", () => {
+    const store = make({ isPlaying: true });
+    const { result } = withMap(store, {}, () => 99);
+    act(() => result.current.toggleMetronome());
+    expect(m.startSequence).not.toHaveBeenCalled();
+    expect(m.stop).toHaveBeenCalled();
   });
 });

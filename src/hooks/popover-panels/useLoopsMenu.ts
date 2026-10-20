@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { barSections, type BarSection, type NamedLoop } from "../../loops";
+import { barSections, barSectionsFromMap, type BarSection, type NamedLoop } from "../../loops";
+import type { BarMap } from "../../meter";
 import { usePopover } from "./usePopover";
 
 export const LOOP_SECTION_SIZES = [2, 4, 8, 16] as const;
@@ -18,6 +19,8 @@ export interface LoopsMenuState {
   punchOut: number | null;
   duration: number;
   metronomeOffset: number;
+  /** The song's bars, when an app keeps them: sections are cut from those instead of from a tempo. */
+  meterMap?: BarMap | null;
   isRecording: boolean;
   saveLoop: (name: string) => Promise<void>;
   renameLoop: (id: string, name: string) => Promise<void>;
@@ -59,6 +62,7 @@ export function useLoopsMenu(store: LoopsMenuStore): LoopsMenu {
   const punchOut = store((s) => s.punchOut);
   const duration = store((s) => s.duration);
   const metronomeOffset = store((s) => s.metronomeOffset);
+  const meterMap = store((s) => s.meterMap ?? null);
   const isRecording = store((s) => s.isRecording);
   const saveLoop = store((s) => s.saveLoop);
   const renameLoop = store((s) => s.renameLoop);
@@ -72,7 +76,9 @@ export function useLoopsMenu(store: LoopsMenuStore): LoopsMenu {
   const [message, setMessage] = useState<string | null>(null);
 
   const loops = song?.loops ?? [];
-  const sections = song
+  const sections = song && meterMap && meterMap.bars.length > 0
+    ? barSectionsFromMap(meterMap, sectionBars)
+    : song
     ? barSections({
         duration,
         bpm: song.detectedBpm ?? 0,

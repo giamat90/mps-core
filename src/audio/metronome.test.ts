@@ -209,3 +209,49 @@ describe("metronome output routing", () => {
     m.stop();
   });
 });
+
+describe("metronome click sequences", () => {
+  const run = async (steps: number) => {
+    const ctx = contexts[0];
+    for (let i = 0; i < steps; i++) {
+      ctx.currentTime += 0.025;
+      await vi.advanceTimersByTimeAsync(25);
+    }
+  };
+
+  it("clicks at the given waits with the pitch and level of each cue", async () => {
+    const m = await freshMetronome();
+    const cues = [{ wait: 0.2, level: 2 as const }, { wait: 0.3, level: 1 as const }, { wait: 0.1, level: 2 as const }];
+    m.startSequence({ wait: 0, level: 0 }, () => cues.shift() ?? null);
+    await run(40);
+    expect(clicks.map((c) => c.freq)).toEqual([1500, 900, 1200, 900]);
+    expect(clicks.map((c) => c.peak)).toEqual([0.9, 0.5, 0.7, 0.5]);
+    const gaps = clicks.slice(1).map((c, i) => c.time - clicks[i].time);
+    expect(gaps[0]).toBeCloseTo(0.2, 9);
+    expect(gaps[1]).toBeCloseTo(0.3, 9);
+    expect(gaps[2]).toBeCloseTo(0.1, 9);
+    m.stop();
+  });
+
+  it("stops asking once the sequence is over", async () => {
+    const m = await freshMetronome();
+    const next = vi.fn(() => null);
+    m.startSequence({ wait: 0, level: 0 }, next);
+    await run(20);
+    expect(clicks.length).toBe(1);
+    expect(next).toHaveBeenCalledTimes(1);
+    m.stop();
+  });
+
+  it("leaves the steady-tempo mode alone after a sequence", async () => {
+    const m = await freshMetronome();
+    m.startSequence({ wait: 0, level: 0 }, () => null);
+    await run(5);
+    clicks.length = 0;
+    m.start(120, 0, 0);
+    await run(40);
+    expect(clicks[0].freq).toBe(1500);
+    expect(clicks[1].time - clicks[0].time).toBeCloseTo(0.5, 9);
+    m.stop();
+  });
+});

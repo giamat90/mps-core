@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  addLoop, barSections, MAX_LOOPS, MAX_LOOP_NAME, removeLoop, renameLoop, validateLoop, type NamedLoop,
+  addLoop, barSections, barSectionsFromMap, MAX_LOOPS, MAX_LOOP_NAME, removeLoop, renameLoop, validateLoop, type NamedLoop,
 } from "./loops";
 
 const loop = (id: string, start: number, end: number, name = id): NamedLoop => ({ id, name, start, end });
@@ -130,5 +130,35 @@ describe("barSections", () => {
     expect(barSections({ ...base, bpm: 0 })).toEqual([]);
     expect(barSections({ ...base, duration: 0 })).toEqual([]);
     expect(barSections({ ...base, barsPerSection: 0 })).toEqual([]);
+  });
+});
+
+describe("barSectionsFromMap", () => {
+  const bar = (start: number, num = 4, den = 4) => ({ start, num, den });
+  const map = (starts: number[], end: number) => ({ version: 1 as const, bars: starts.map((s) => bar(s)), end, source: "edited" as const });
+
+  it("groups the bars of the map, however long each is", () => {
+    const sections = barSectionsFromMap(map([0, 2, 5, 6, 9, 10], 12), 2);
+    expect(sections).toEqual([
+      { start: 0, end: 5, label: "Bars 1–2" },
+      { start: 5, end: 9, label: "Bars 3–4" },
+      { start: 9, end: 12, label: "Bars 5–6" },
+    ]);
+  });
+
+  it("starts with an intro when the first bar comes late", () => {
+    expect(barSectionsFromMap(map([4, 6], 8), 2)).toEqual([
+      { start: 0, end: 4, label: "Intro" },
+      { start: 4, end: 8, label: "Bars 1–2" },
+    ]);
+  });
+
+  it("names a last section of one bar after that bar", () => {
+    expect(barSectionsFromMap(map([0, 2, 4], 6), 2).map((s) => s.label)).toEqual(["Bars 1–2", "Bars 3"]);
+  });
+
+  it("is empty without bars or a section size", () => {
+    expect(barSectionsFromMap({ ...map([0], 2), bars: [] }, 4)).toEqual([]);
+    expect(barSectionsFromMap(map([0], 2), 0)).toEqual([]);
   });
 });

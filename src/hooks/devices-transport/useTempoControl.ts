@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
 import { metronome } from "../../audio/metronome";
 import { computeMetronomePhase } from "../../lib/metronomeSync";
+import { clickSequence, type BarMap, type ClickDensity } from "../../meter";
 import type { StoreHook } from "./storeHook";
 
 export const RATE_MIN = 0.25;
 export const RATE_MAX = 2.5;
 export const RATE_STEP = 0.05;
 const FALLBACK_BPM = 120;
+const SEEK_WATCH_MS = 200;
+/** A playhead this far from where steady playing would have put it has been moved. */
+const SEEK_JUMP_SECONDS = 0.35;
 
 export interface TempoControlState {
   playbackRate: number;
@@ -21,6 +25,10 @@ export interface TempoControlOptions {
   detectedBpm?: number;
   /** Song time now, read when the click has to be phase-locked. */
   getCurrentTime: () => number;
+  /** When there is one, the click follows its bars instead of a steady tempo: its accents, its changes of meter. */
+  meterMap?: BarMap | null;
+  /** Which of the map's pulses click. */
+  clickDensity?: ClickDensity;
 }
 
 export interface TempoControl {
@@ -50,7 +58,7 @@ export function formatDownbeat(seconds: number): string {
 }
 
 export function useTempoControl(store: StoreHook<TempoControlState>, o: TempoControlOptions): TempoControl {
-  const { detectedBpm, getCurrentTime } = o;
+  const { detectedBpm, getCurrentTime, meterMap = null, clickDensity = "pulses" } = o;
   const playbackRate = store((s) => s.playbackRate);
   const setPlaybackRate = store((s) => s.setPlaybackRate);
   const isPlaying = store((s) => s.isPlaying);
@@ -60,11 +68,31 @@ export function useTempoControl(store: StoreHook<TempoControlState>, o: TempoCon
   const [bpmInput, setBpmInput] = useState(() => (detectedBpm ? String(Math.round(detectedBpm * playbackRate)) : ""));
   const [rateInput, setRateInput] = useState(() => playbackRate.toFixed(2));
   const [metronomeEnabled, setMetronomeEnabled] = useState(false);
+  const [moved, setMoved] = useState(0);
 
   const effectiveBpm = (detectedBpm ?? FALLBACK_BPM) * playbackRate;
 
+  // A click that follows a map is a list of times, not a steady beat that stays in phase on its own: a seek or a
+  // loop jumping back leaves it clicking the wrong bar, so a moved playhead starts it again.
   useEffect(() => {
-    if (metronomeEnabled && isPlaying) {
+    if (!meterMap || !metronomeEnabled || !isPlaying) return;
+    let expected = getCurrentTime();
+    const id = window.setInterval(() => {
+      const now = getCurrentTime();
+      expected += (SEEK_WATCH_MS / 1000) * playbackRate;
+      if (Math.abs(now - expected) > SEEK_JUMP_SECONDS) setMoved((n) => n + 1);
+      expected = now;
+    }, SEEK_WATCH_MS);
+    return () => window.clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [meterMap, metronomeEnabled, isPlaying, playbackRate]);
+
+  useEffect(() => {
+    if (metronomeEnabled && isPlaying && meterMap) {
+      const sequence = clickSequence(meterMap, getCurrentTime(), playbackRate, clickDensity);
+      if (sequence) metronome.startSequence(sequence.first, sequence.next);
+      else metronome.stop();
+    } else if (metronomeEnabled && isPlaying) {
       // Phase-lock to metronomeOffset rather than always starting fresh at
       // beat 0 — otherwise the click drifts out of sync with the song's
       // actual downbeat whenever there's silence (or a pickup) before it.
@@ -82,7 +110,7 @@ export function useTempoControl(store: StoreHook<TempoControlState>, o: TempoCon
     // so a mid-playback speed change or a dragged downbeat marker doesn't
     // leave the click phase-locked to a stale mapping.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [metronomeEnabled, isPlaying, effectiveBpm, metronomeOffset]);
+  }, [metronomeEnabled, isPlaying, effectiveBpm, metronomeOffset, meterMap, clickDensity, moved]);
 
   useEffect(() => () => metronome.stop(), []);
 
