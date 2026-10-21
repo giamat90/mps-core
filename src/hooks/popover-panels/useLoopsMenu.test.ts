@@ -125,4 +125,12 @@ describe("useLoopsMenu", () => {
     act(() => result.current.toggle());
     expect(result.current.open).toBe(true);
   });
+
+  it("cuts the sections from the song's bars when it has a map, whatever the tempo", () => {
+    const meterMap = { version: 1 as const, bars: [0, 3, 8].map((start) => ({ start, num: 7, den: 8 })), end: 12, source: "edited" as const };
+    const { result } = setup({ meterMap });
+    result.current.setSectionBars;
+    act(() => result.current.setSectionBars(2));
+    expect(result.current.sections.map((s) => [s.start, s.end, s.label])).toEqual([[0, 8, "Bars 1–2"], [8, 12, "Bars 3"]]);
+  });
 });

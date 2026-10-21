@@ -1,3 +1,5 @@
+import { barEnd, type BarMap } from "../meter/barMap";
+
 /** A region of a song the user saved under a name, to come back to with one click. */
 export interface NamedLoop {
   id: string;
@@ -105,6 +107,26 @@ export function barSections(input: BarSectionInput): BarSection[] {
       label: endBar > startBar ? `Bars ${startBar}${EN_DASH}${endBar}` : `Bars ${startBar}`,
     });
     startBar = endBar + 1;
+  }
+  return sections;
+}
+
+/**
+ * The same cut into groups of bars, from a bar map: each bar is as long as the map says, so a song that changes
+ * meter or tempo still comes out in whole bars.
+ */
+export function barSectionsFromMap(map: BarMap, barsPerSection: number): BarSection[] {
+  const { bars } = map;
+  if (bars.length === 0 || !(barsPerSection > 0)) return [];
+  const sections: BarSection[] = [];
+  if (bars[0].start >= INTRO_MIN_SECONDS) sections.push({ start: 0, end: bars[0].start, label: "Intro" });
+  for (let first = 0; first < bars.length; first += barsPerSection) {
+    const last = Math.min(first + barsPerSection, bars.length) - 1;
+    sections.push({
+      start: bars[first].start,
+      end: barEnd(map, last),
+      label: last > first ? `Bars ${first + 1}${EN_DASH}${last + 1}` : `Bars ${first + 1}`,
+    });
   }
   return sections;
 }

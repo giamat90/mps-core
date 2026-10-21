@@ -71,6 +71,46 @@ describe("drawTimeRuler", () => {
   });
 });
 
+describe("drawTimeRuler with bars", () => {
+  const view = {
+    width: 600, height: 24, duration: 120, minPxPerSec: 10, scrollTime: 0,
+    punchIn: null as number | null, punchOut: null as number | null, metronomeOffset: 2, accentRgb: "1,2,3",
+  };
+  const meter = {
+    version: 1 as const,
+    bars: [{ start: 2, num: 4, den: 4 }, { start: 6, num: 4, den: 4 }, { start: 10, num: 7, den: 8 }],
+    end: 12,
+    source: "edited" as const,
+  };
+
+  it("draws a line where each visible bar starts and numbers it", () => {
+    const { ctx, log } = createRecordingContext();
+    drawTimeRuler(ctx, { ...view, meter });
+    expect(log).toContain("moveTo(20.5,12)");
+    expect(log).toContain("moveTo(60.5,12)");
+    expect(log).toContain('fillText("1 4/4",23.5,1)');
+    expect(log).toContain('fillText("3 7/8",103.5,1)');
+  });
+
+  it("takes the place of the single downbeat marker", () => {
+    const { ctx, log } = createRecordingContext();
+    drawTimeRuler(ctx, { ...view, meter });
+    expect(log).not.toContain("setLineDash([3,2])");
+  });
+
+  it("draws nothing for bars that are scrolled out of view", () => {
+    const { ctx, log } = createRecordingContext();
+    drawTimeRuler(ctx, { ...view, meter, scrollTime: 100 });
+    expect(log.some((l) => l.startsWith('fillText("1 '))).toBe(false);
+  });
+
+  it("keeps the old marker for a song without bars", () => {
+    const { ctx, log } = createRecordingContext();
+    drawTimeRuler(ctx, { ...view, meter: null });
+    expect(log).toContain("setLineDash([3,2])");
+  });
+});
+
 describe("useTimeRuler", () => {
   let log: string[];
   let state: TimeRulerState;

@@ -7,6 +7,8 @@ import {
   type PunchCommit,
   type PunchDrag,
 } from "../../punch";
+import type { BarMap } from "../../meter";
+import { drawBarLines } from "./barLines";
 import type { StoreHook } from "./storeHook";
 
 const HANDLE_HIT_PX = 12;
@@ -38,6 +40,8 @@ export interface TimeRulerView {
   metronomeOffset: number;
   /** The punch region's colour as "r,g,b", the one thing the apps style differently. */
   accentRgb: string;
+  /** The bars of the song, when it has a map; they take the place of the single downbeat marker. */
+  meter?: BarMap | null;
 }
 
 export function drawTimeRuler(ctx: CanvasRenderingContext2D, view: TimeRulerView): void {
@@ -90,6 +94,11 @@ export function drawTimeRuler(ctx: CanvasRenderingContext2D, view: TimeRulerView
   ctx.lineTo(W, H - 0.5);
   ctx.stroke();
 
+  if (view.meter && view.meter.bars.length > 0) {
+    drawBarLines(ctx, view.meter, { width: W, height: H, minPxPerSec, scrollTime, accentRgb });
+    return;
+  }
+
   // Dashed line plus a flag at the bottom edge, draggable to line the click track up with the downbeat.
   const mx = tX(view.metronomeOffset);
   ctx.strokeStyle = "rgba(74,158,255,0.85)";
@@ -118,6 +127,8 @@ export interface TimeRulerState {
   minPxPerSec: number;
   scrollTime: number;
   metronomeOffset: number;
+  /** The song's bars, if an app keeps them. */
+  meterMap?: BarMap | null;
   setPunchIn: (t: number) => void;
   setPunchOut: (t: number) => void;
   clearPunch: () => void;
@@ -160,6 +171,7 @@ export function useTimeRuler({ useStore, accentRgb, lockWhileRecording }: TimeRu
   const scrollTime = useStore((s) => s.scrollTime);
   const metronomeOffset = useStore((s) => s.metronomeOffset);
   const setMetronomeOffset = useStore((s) => s.setMetronomeOffset);
+  const meter = useStore((s) => s.meterMap ?? null);
 
   const drag = useRef<RulerDrag | null>(null);
 
@@ -182,9 +194,10 @@ export function useTimeRuler({ useStore, accentRgb, lockWhileRecording }: TimeRu
         punchOut: overrideOut !== undefined ? overrideOut : punchOut,
         metronomeOffset: overrideMetronome !== undefined ? overrideMetronome : metronomeOffset,
         accentRgb,
+        meter,
       });
     },
-    [duration, punchIn, punchOut, minPxPerSec, scrollTime, metronomeOffset, accentRgb],
+    [duration, punchIn, punchOut, minPxPerSec, scrollTime, metronomeOffset, accentRgb, meter],
   );
 
   useEffect(() => {
@@ -238,7 +251,7 @@ export function useTimeRuler({ useStore, accentRgb, lockWhileRecording }: TimeRu
     const { offsetX } = e.nativeEvent;
 
     const metroX = (metronomeOffset - scrollTime) * minPxPerSec;
-    if (Math.abs(offsetX - metroX) <= HANDLE_HIT_PX) {
+    if (!meter && Math.abs(offsetX - metroX) <= HANDLE_HIT_PX) {
       drag.current = { kind: "metronome" };
       setCursor("ew-resize");
       return;
@@ -257,7 +270,7 @@ export function useTimeRuler({ useStore, accentRgb, lockWhileRecording }: TimeRu
 
     if (!active) {
       const metroX = (metronomeOffset - scrollTime) * minPxPerSec;
-      if (Math.abs(offsetX - metroX) <= HANDLE_HIT_PX) {
+      if (!meter && Math.abs(offsetX - metroX) <= HANDLE_HIT_PX) {
         setCursor("ew-resize");
         return;
       }

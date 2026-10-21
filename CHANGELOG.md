@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.15.0
+
+**Bar maps: a song's bars as data, a metronome that follows them, and bar lines on the ruler.** The part of SPS's new Meter feature that VPS could run unchanged; every addition is an optional parameter, so an app that passes none behaves as before (VPS's own suite passes against it).
+- `@giamat90/mps-core/meter` (new): `BarMap` (each bar's start, pulse count, unit note and optional accent groups; the pulses are spaced evenly over the bar, so tempo is the bar's length), queries (`barIndexAt`, `pulsesBetween`, `nextPulse`, `meterRuns`, `dominantMeter`, `repeatingCycle`, `defaultGroups`, `validateMap`), edits that return a new map or null when it would not fit (`gridMap`, `setBarStart`, `shiftBars`, `shiftDownbeat`, `splitBar`, `mergeBars`, `removeBar`, `relabelBars`, `rescalePulse`, `fillCycle`, `replaceBars`), tap fitting (`fitTaps`, `cleanTaps`, `barsFromBarTaps`, `barsFromBeatTaps`) and the click cursor (`PulseCursor`, `clickSequence`, `countInMap`).
+- `metronome`: `startSequence(first, next)` schedules clicks from a function instead of a steady tempo, with three accent levels (1500, 1200 and 900 Hz); `start(bpm, ...)` is unchanged.
+- `hooks`: `useTempoControl` takes `meterMap` and `clickDensity` (the click follows the bars and starts again when the playhead jumps); `useLoopsMenu` cuts bar sections from a `meterMap`; `useTimeRuler` draws a `meterMap`'s bars (a line and number per bar, the signature where it changes) in place of the single downbeat marker.
+- `loops`: `barSectionsFromMap`.
+
 ## 0.14.0
 
 **The lyrics search finds the song by artist as well as title.** Imports left the artist empty, so the lookup searched the title alone and a common title found other bands' songs.
