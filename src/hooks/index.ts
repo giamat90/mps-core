@@ -9,6 +9,8 @@ export { usePanelMenu } from "./popover-panels/usePanelMenu";
 export type {
   PanelMenu, PanelMenuFixedList, PanelMenuItem, PanelMenuListProps, UsePanelMenuOptions,
 } from "./popover-panels/usePanelMenu";
+export { useCollapsiblePanel } from "./popover-panels/useCollapsiblePanel";
+export type { CollapsiblePanel } from "./popover-panels/useCollapsiblePanel";
 export { useDetachHandle } from "./popover-panels/useDetachHandle";
 export type { UseDetachHandleOptions } from "./popover-panels/useDetachHandle";
 export { useDockHandle } from "./popover-panels/useDockHandle";
