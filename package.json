@@ -1,12 +1,13 @@
 {
   "name": "@giamat90/mps-core",
-  "version": "0.16.0",
+  "version": "0.17.0",
   "description": "Code shared by Vocal Practice Studio (VPS) and Song Practice Studio (SPS): TypeScript modules under src/, the Python sidecar library under python/.",
   "private": true,
   "type": "module",
   "exports": {
     "./metronome": "./src/audio/metronome.ts",
     "./recorder": "./src/audio/recorder.ts",
+    "./countIn": "./src/audio/countIn.ts",
     "./metronomeSync": "./src/lib/metronomeSync.ts",
     "./zoomPan": "./src/lib/zoomPan.ts",
     "./music": "./src/lib/music.ts",

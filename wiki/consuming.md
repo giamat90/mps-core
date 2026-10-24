@@ -24,6 +24,7 @@ all of which both apps already have): `react`, `zustand`, `@tauri-apps/api`,
 |---|---|
 | `@giamat90/mps-core/metronome` | `metronome` (singleton lookahead click track) |
 | `@giamat90/mps-core/recorder` | `VocalRecorder` |
+| `@giamat90/mps-core/countIn` | `createCountInSlice` (the player store's count-in: bars, the running count, its countdown, cancel), `steadyCountIn`, `countInBpm`, `COUNT_IN_LEAD_S`; types `CountInPlan`, `CountInSlice`, `CountInPurpose` |
 | `@giamat90/mps-core/metronomeSync` | `computeMetronomePhase`, `countInDurationSeconds` |
 | `@giamat90/mps-core/zoomPan` | zoom/pan maths and constants |
 | `@giamat90/mps-core/music` | `NOTE_NAMES`, `midiToFrequency`, `frequencyToMidi`, `frequencyToNote` |

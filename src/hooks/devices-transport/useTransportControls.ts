@@ -1,3 +1,4 @@
+import type { CountInPurpose } from "../../audio/countIn";
 import type { StoreHook } from "./storeHook";
 
 export interface TransportControlsState {
@@ -8,6 +9,9 @@ export interface TransportControlsState {
   stop: () => void;
   stopRecording: () => Promise<unknown>;
   isRecording: boolean;
+  isCountingIn: boolean;
+  countInFor: CountInPurpose | null;
+  countInBeatsRemaining: number;
   skipToStart: () => void;
   skipToEnd: () => void;
 }
@@ -20,6 +24,9 @@ export interface TransportControlsOptions {
 export interface TransportControls {
   isPlaying: boolean;
   isRecording: boolean;
+  /** The count-in before Play is running: the button shows `countInBeatsRemaining` and a click cancels it. */
+  isCountingIn: boolean;
+  countInBeatsRemaining: number;
   playLabel: string;
   currentText: string;
   durationText: string;
@@ -44,13 +51,20 @@ export function useTransportControls(store: StoreHook<TransportControlsState>, o
   const stop = store((s) => s.stop);
   const stopRecording = store((s) => s.stopRecording);
   const isRecording = store((s) => s.isRecording);
+  const countingIn = store((s) => s.isCountingIn);
+  const countInFor = store((s) => s.countInFor);
+  const countInBeatsRemaining = store((s) => s.countInBeatsRemaining);
   const skipToStart = store((s) => s.skipToStart);
   const skipToEnd = store((s) => s.skipToEnd);
+
+  const isCountingIn = countingIn && countInFor === "play";
 
   return {
     isPlaying,
     isRecording,
-    playLabel: isPlaying ? "Pause" : "Play",
+    isCountingIn,
+    countInBeatsRemaining,
+    playLabel: isCountingIn ? "Cancel count-in" : isPlaying ? "Pause" : "Play",
     currentText: formatClock(currentTime),
     durationText: formatClock(duration),
     togglePlay,

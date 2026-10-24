@@ -13,6 +13,9 @@ const make = (patch: Partial<TransportControlsState> = {}) =>
     stop: vi.fn(),
     stopRecording: vi.fn(async () => {}),
     isRecording: false,
+    isCountingIn: false,
+    countInFor: null,
+    countInBeatsRemaining: 0,
     skipToStart: vi.fn(),
     skipToEnd: vi.fn(),
     ...patch,
@@ -37,6 +40,17 @@ describe("useTransportControls", () => {
     act(() => store.set({ isPlaying: true, currentTime: 70 }));
     expect(result.current.playLabel).toBe("Pause");
     expect(result.current.currentText).toBe("1:10");
+  });
+
+  it("shows the count-in before Play and offers to cancel it, but not one a recording owns", () => {
+    const store = make();
+    const { result } = renderHook(() => useTransportControls(store, { stopEndsRecording: true }));
+    act(() => store.set({ isCountingIn: true, countInFor: "play", countInBeatsRemaining: 3 }));
+    expect(result.current).toMatchObject({ isCountingIn: true, countInBeatsRemaining: 3, playLabel: "Cancel count-in" });
+    for (const countInFor of ["record", "monitor"] as const) {
+      act(() => store.set({ countInFor }));
+      expect(result.current).toMatchObject({ isCountingIn: false, playLabel: "Play" });
+    }
   });
 
   it("passes the plain actions through", () => {
