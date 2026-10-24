@@ -40,6 +40,18 @@ describe("installPlayerShortcuts", () => {
     expect(p.togglePlay).not.toHaveBeenCalled();
   });
 
+  it("lets Space through while counting in, to cancel the count, and nothing else", () => {
+    const p = player({ isCountingIn: true });
+    const stop = installPlayerShortcuts(() => p);
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: " " }));
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight" }));
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Home" }));
+    expect(p.togglePlay).toHaveBeenCalledTimes(1);
+    expect(p.seek).not.toHaveBeenCalled();
+    expect(p.skipToStart).not.toHaveBeenCalled();
+    stop();
+  });
+
   it("does nothing while recording", () => {
     const p = player({ isRecording: true });
     const stop = installPlayerShortcuts(() => p);

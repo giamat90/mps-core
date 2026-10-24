@@ -100,10 +100,15 @@ describe("buildShortcuts", () => {
     }
   });
 
-  it("does nothing during the count-in", () => {
+  it("lets only Space through during the count-in, where it cancels the count", () => {
     const p = fakePlayer({ isCountingIn: true });
     run(p, "space");
-    expect(p.togglePlay).not.toHaveBeenCalled();
+    expect(p.togglePlay).toHaveBeenCalledTimes(1);
+    for (const key of ["Home", "End", "ArrowLeft", "ArrowRight", "l", "[", "]"]) run(p, key);
+    expect(p.skipToStart).not.toHaveBeenCalled();
+    expect(p.skipToEnd).not.toHaveBeenCalled();
+    expect(p.seek).not.toHaveBeenCalled();
+    expect(p.setPunchIn).not.toHaveBeenCalled();
   });
 
   it("reads the player when the key is pressed, not when the bindings are built", () => {

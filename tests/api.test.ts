@@ -13,6 +13,7 @@ const exportsMap = (JSON.parse(readFileSync(join(root, "package.json"), "utf8"))
 const SURFACE: Record<string, string[]> = {
   "./metronome": ["metronome"],
   "./recorder": ["VocalRecorder"],
+  "./countIn": ["COUNT_IN_LEAD_S", "countInBpm", "createCountInSlice", "steadyCountIn"],
   "./metronomeSync": ["computeMetronomePhase", "countInDurationSeconds"],
   "./zoomPan": [
     "FOLLOW_MARGIN_RATIO",
@@ -147,6 +148,7 @@ const SURFACE: Record<string, string[]> = {
     "tickInterval",
     "useBridgeRun",
     "useCollapsiblePanel",
+    "useCountInButton",
     "useDetachHandle",
     "useDeviceSelect",
     "useDockHandle",

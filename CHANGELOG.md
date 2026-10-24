@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.17.0
+
+**The count-in is shared, and it counts in Play.** Until now each app carried its own count-in timers and only Record (and VPS's Monitor) used it; Play started the song at once.
+- `@giamat90/mps-core/countIn` (new): `createCountInSlice` (the zustand slice: `countInBars`, `isCountingIn`, `countInBeatsRemaining`, `countInFor`, `runCountIn(plan, purpose)`, `cancelCountIn`, `setCountInBars`; one count at a time, a second cancels the first), `steadyCountIn(bpm, bars)` (a plan: beats, the instants the countdown steps, the total, how to start the click), `countInBpm(detectedBpm, playbackRate)` and `COUNT_IN_LEAD_S`. A plan is plain data, so SPS builds its bar-map plan itself.
+- `hooks`: `useCountInButton` (the clock button, moved out of `useRecordButton`). **Breaking for the hooks' callers:** `useRecordButton` no longer returns `countInBars`, `countInDisabled`, `countInText`, `countInTitle`, `countInLabel` or `onCountInClick`, and its state wants `countInFor` instead of `countInBars`/`setCountInBars`; its `isCountingIn` is true only for a count the Record button owns (`"record"` or `"monitor"`). `useTransportControls` gains `isCountingIn`, `countInBeatsRemaining` and the label "Cancel count-in" for a count before Play, and its state wants `isCountingIn`, `countInFor` and `countInBeatsRemaining`.
+- `hooks` shortcuts: Space stays live while counting in (it cancels the count before Play); every other key still waits.
+- The countdown steps on one timeout per beat (it was an interval beside a timeout), so a bar map's pulses and a steady count step the same way.
+
 ## 0.16.0
 
 **A panel's title can fold it.** Every panel in both apps gets its name as a button, like the Lyrics panel always had; clicking it folds the panel down to the title.

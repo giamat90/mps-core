@@ -21,7 +21,7 @@ export interface ShortcutPlayer {
   setPunchLoop(on: boolean): void;
 }
 
-/** Space, arrows, Home / End, L, [ and ]. Nothing runs while recording or counting in. */
+/** Space, arrows, Home / End, L, [ and ]. Nothing runs while recording; while counting in only Space does, since it cancels the count before Play. */
 export function buildShortcuts(player: () => ShortcutPlayer): ShortcutBinding[] {
   const guarded = (run: (p: ShortcutPlayer) => void) => () => {
     const p = player();
@@ -32,7 +32,13 @@ export function buildShortcuts(player: () => ShortcutPlayer): ShortcutBinding[] 
     guarded((p) => p.seek(Math.max(0, Math.min(p.duration, p.currentTime + delta))));
 
   return [
-    { key: "space", run: guarded((p) => p.togglePlay()) },
+    {
+      key: "space",
+      run: () => {
+        const p = player();
+        if (!p.isRecording) p.togglePlay();
+      },
+    },
     { key: "Home", run: guarded((p) => p.skipToStart()) },
     { key: "End", run: guarded((p) => p.skipToEnd()) },
     { key: "ArrowLeft", run: seekBy(-SEEK_STEP_S) },

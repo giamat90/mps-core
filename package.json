@@ -7,6 +7,7 @@
   "exports": {
     "./metronome": "./src/audio/metronome.ts",
     "./recorder": "./src/audio/recorder.ts",
+    "./countIn": "./src/audio/countIn.ts",
     "./metronomeSync": "./src/lib/metronomeSync.ts",
     "./zoomPan": "./src/lib/zoomPan.ts",
     "./music": "./src/lib/music.ts",

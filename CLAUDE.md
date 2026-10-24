@@ -57,7 +57,7 @@ is allowed, but say so in `MPS/wiki/lineage.md`).
 
 ```
 src/               TypeScript source, shipped as-is (no build step)
-  audio/           metronome (steady tempo or a sequence of clicks), recorder
+  audio/           metronome (steady tempo or a sequence of clicks), recorder, countIn (the count-in slice, plans and tempo)
   meter/           bar maps: a song's bars (start, pulses, unit, groups), edits that keep neighbours valid, tap fitting, the click cursor and the count-in map (pure functions; the Meter panel in SPS is built on them)
   lib/             metronomeSync, zoomPan, music, pitch
   spectrum/        short-term spectrum: FFT, dB curve helpers, F0 and formants (pure; tests use __fixtures__/synthVowel)
