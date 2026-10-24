@@ -1,6 +1,10 @@
 # Changelog
 
-## 0.17.0
+## 0.18.0
+
+**A bar of cards that the user reorders, for the top bar of both apps.** The cards wrap with the window and are dragged anywhere inside the bar, along a line or to another; the panels under the stems keep their own vertical drag.
+- `@giamat90/mps-core/hooks/dnd` (new): `useSortableBar(store, noun?)` (what to spread on `DndContext`, plus the `rectSortingStrategy` for `SortableContext`; the drop goes through the panel store's `move`, the announcements and the screen-reader text name the cards with `noun`), `useSortableBarCard(id)` (a card's node ref, style and `grip`, the same `PanelGrip` the panels use) and `withinBar` (the modifier that keeps a dragged card inside its bar). Markup, class names and what a card holds stay in the apps.
+- The order, and which cards are shown, are an ordinary `createPanelStore`; the apps give it a storage key of its own, apart from the panels'.
 
 **The count-in is shared, and it counts in Play.** Until now each app carried its own count-in timers and only Record (and VPS's Monitor) used it; Play started the song at once.
 - `@giamat90/mps-core/countIn` (new): `createCountInSlice` (the zustand slice: `countInBars`, `isCountingIn`, `countInBeatsRemaining`, `countInFor`, `runCountIn(plan, purpose)`, `cancelCountIn`, `setCountInBars`; one count at a time, a second cancels the first), `steadyCountIn(bpm, bars)` (a plan: beats, the instants the countdown steps, the total, how to start the click), `countInBpm(detectedBpm, playbackRate)` and `COUNT_IN_LEAD_S`. A plan is plain data, so SPS builds its bar-map plan itself.

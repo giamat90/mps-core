@@ -185,9 +185,12 @@ const SURFACE: Record<string, string[]> = {
     "usePanelGrip",
     "useRootDropZone",
     "useSortableFolder",
+    "useSortableBar",
+    "useSortableBarCard",
     "useSortablePanel",
     "useSortablePanels",
     "useSortableSongRow",
+    "withinBar",
   ],
   "./punch": [
     "MIN_HANDLE_GAP_S",
