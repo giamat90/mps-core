@@ -47,7 +47,7 @@ const SURFACE: Record<string, string[]> = {
     "xToFreq",
   ],
   "./updater": ["useUpdaterStore"],
-  "./panels": ["createPanelStore"],
+  "./panels": ["createCollapseStore", "createPanelStore"],
   "./takes": ["EMPTY_SELECTION", "audibleTakes", "hideTake", "reconcileTakes", "showTake", "takeSilence", "toggleTake"],
   "./windows": [
     "DETACHED_LABEL_PREFIX",
@@ -146,6 +146,7 @@ const SURFACE: Record<string, string[]> = {
     "takeDisplayName",
     "tickInterval",
     "useBridgeRun",
+    "useCollapsiblePanel",
     "useDetachHandle",
     "useDeviceSelect",
     "useDockHandle",
