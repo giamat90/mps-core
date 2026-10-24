@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.16.0
+
+**A panel's title can fold it.** Every panel in both apps gets its name as a button, like the Lyrics panel always had; clicking it folds the panel down to the title.
+- `panels`: `createCollapseStore({ storageKey })`, a headless store of the folded panel ids (only folded ones are stored, so every panel starts open; the store re-reads when another window writes the same key, for panels in windows of their own). Separate from `createPanelStore`: a component does not know which page shows it, so the choice is keyed by the panel's own id.
+- `hooks/popover-panels`: `useCollapsiblePanel(store, id)` returns `{ open, toggle, buttonProps }`; the app spreads `buttonProps` on its title button and draws the body only while `open`.
+- No change to the wire fixtures, the sidecar or the Rust crates; the apps bump the pin for the new exports.
+
 ## 0.15.0
 
 **Bar maps: a song's bars as data, a metronome that follows them, and bar lines on the ruler.** The part of SPS's new Meter feature that VPS could run unchanged; every addition is an optional parameter, so an app that passes none behaves as before (VPS's own suite passes against it).
