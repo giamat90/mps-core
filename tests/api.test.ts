@@ -135,6 +135,7 @@ const SURFACE: Record<string, string[]> = {
     "hiddenTrackTags",
     "installPlayerShortcuts",
     "layoutLibrary",
+    "libraryDropTarget",
     "libraryStateCreator",
     "messageIncludes",
     "normalizeForSearch",

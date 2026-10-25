@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.19.0
+
+**A song can be dropped on a closed folder, and the folder it would land in is highlighted.** A closed folder has no body to drop on; hovering its header gave the sortable section id `folder:<id>`, which `resolveLibraryDrop` mapped to nothing. The highlight used dnd-kit's `isOver`, false while the pointer is over a song row.
+- `resolveLibraryDrop`: a song over `folder:<id>` lands at the end of that folder.
+- `libraryDropTarget(layout, activeId, overId)` (new, `hooks`): the container (folder id or `ROOT_CONTAINER_ID`) a drop would move the song into, or `null` (folder drag, nothing under the pointer, the song's own container, unknown id).
+- `useLibraryPage` returns `dropTarget`, `handleDragOver` and `handleDragCancel` (wire them to `DndContext`'s `onDragOver` / `onDragCancel`); `handleDragEnd` clears the target. Apps highlight with `dropTarget === folder.id`, no longer with `isOver`.
+
 ## 0.18.0
 
 **A bar of cards that the user reorders, for the top bar of both apps.** The cards wrap with the window and are dragged anywhere inside the bar, along a line or to another; the panels under the stems keep their own vertical drag.

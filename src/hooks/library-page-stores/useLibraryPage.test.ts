@@ -127,6 +127,30 @@ describe("useLibraryPage", () => {
     expect(result.current.newFolderName).toBe("");
   });
 
+  it("tracks the folder a dragged song would land in until the drag ends or is cancelled", async () => {
+    const { useStore, actions } = makeStore({
+      songs: [song("r1", 1), song("r2", 2)],
+      folders: [folder("f1", 1)],
+    });
+    const { result } = renderHook(() => useLibraryPage({ useStore, getVersion: async () => "v", filterSongs }));
+    await act(async () => {});
+    expect(result.current.dropTarget).toBeNull();
+    act(() => result.current.handleDragOver({ active: { id: "r1" }, over: { id: "folder:f1" } }));
+    expect(result.current.dropTarget).toBe("f1");
+    act(() => result.current.handleDragOver({ active: { id: "r1" }, over: { id: "r2" } }));
+    expect(result.current.dropTarget).toBeNull();
+    act(() => result.current.handleDragOver({ active: { id: "r1" }, over: { id: "folder:f1" } }));
+    act(() => result.current.handleDragOver({ active: { id: "r1" }, over: null }));
+    expect(result.current.dropTarget).toBeNull();
+    act(() => result.current.handleDragOver({ active: { id: "r1" }, over: { id: "folder:f1" } }));
+    act(() => result.current.handleDragCancel());
+    expect(result.current.dropTarget).toBeNull();
+    act(() => result.current.handleDragOver({ active: { id: "r1" }, over: { id: "folder:f1" } }));
+    act(() => result.current.handleDragEnd({ active: { id: "r1" }, over: { id: "folder:f1" } }));
+    expect(result.current.dropTarget).toBeNull();
+    expect(actions.moveSongs).toHaveBeenCalledWith("f1", ["r1"]);
+  });
+
   it("turns a drop into the store action it needs", async () => {
     const { useStore, actions } = makeStore({
       songs: [song("r1", 1), song("r2", 2)],
