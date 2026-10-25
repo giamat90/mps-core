@@ -6,6 +6,7 @@ import {
   arrayMove,
   formatDuration,
   layoutLibrary,
+  libraryDropTarget,
   resolveLibraryDrop,
   sortByIndex,
 } from "./libraryView";
@@ -110,5 +111,52 @@ describe("resolveLibraryDrop", () => {
   it("does nothing for unknown songs or targets", () => {
     expect(resolveLibraryDrop(layout, "ghost", "r1")).toBeNull();
     expect(resolveLibraryDrop(layout, "r1", "ghost")).toBeNull();
+  });
+
+  it("moves a song dropped on a folder's section, which is all a closed folder shows", () => {
+    expect(resolveLibraryDrop(layout, "r1", fid("f2"))).toEqual({ type: "move-songs", folderId: "f2", orderedSongIds: ["r1"] });
+    expect(resolveLibraryDrop(layout, "r1", fid("f1"))).toEqual({
+      type: "move-songs",
+      folderId: "f1",
+      orderedSongIds: ["a", "b", "r1"],
+    });
+    expect(resolveLibraryDrop(layout, "a", fid("f2"))).toEqual({ type: "move-songs", folderId: "f2", orderedSongIds: ["a"] });
+  });
+
+  it("does nothing for a song dropped on the section of the folder it is already in, or of one that is gone", () => {
+    expect(resolveLibraryDrop(layout, "a", fid("f1"))).toBeNull();
+    expect(resolveLibraryDrop(layout, "r1", fid("gone"))).toBeNull();
+  });
+});
+
+describe("libraryDropTarget", () => {
+  const layout = layoutLibrary(
+    [song("r1", 1), song("r2", 2), song("a", 1, "f1"), song("b", 2, "f1")],
+    [folder("f1", 1), folder("f2", 2)],
+    "",
+    filter,
+  );
+  const fid = (id: string) => `${FOLDER_DRAG_PREFIX}${id}`;
+
+  it("names the folder a song would land in, whether the pointer is on its body, header or one of its rows", () => {
+    expect(libraryDropTarget(layout, "r1", "f2")).toBe("f2");
+    expect(libraryDropTarget(layout, "r1", fid("f2"))).toBe("f2");
+    expect(libraryDropTarget(layout, "r1", "b")).toBe("f1");
+  });
+
+  it("names the root when a folder's song is over a root row or the root list", () => {
+    expect(libraryDropTarget(layout, "a", "r2")).toBe(ROOT_CONTAINER_ID);
+    expect(libraryDropTarget(layout, "a", ROOT_CONTAINER_ID)).toBe(ROOT_CONTAINER_ID);
+  });
+
+  it("names nothing while the song stays in its own list, over nothing, over something unknown or when a folder is dragged", () => {
+    expect(libraryDropTarget(layout, "r1", "r2")).toBeNull();
+    expect(libraryDropTarget(layout, "a", "b")).toBeNull();
+    expect(libraryDropTarget(layout, "a", fid("f1"))).toBeNull();
+    expect(libraryDropTarget(layout, "r1", null)).toBeNull();
+    expect(libraryDropTarget(layout, "r1", "ghost")).toBeNull();
+    expect(libraryDropTarget(layout, "r1", fid("gone"))).toBeNull();
+    expect(libraryDropTarget(layout, "ghost", "f1")).toBeNull();
+    expect(libraryDropTarget(layout, fid("f1"), fid("f2"))).toBeNull();
   });
 });

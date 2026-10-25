@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { layoutLibrary, resolveLibraryDrop, type DragOutcome } from "./libraryView";
+import { layoutLibrary, libraryDropTarget, resolveLibraryDrop, type DragOutcome } from "./libraryView";
 import type { FolderLike, SongLike } from "./libraryStore";
 
 type PageSong = SongLike & { title: string; sortIndex: number };
 type PageFolder = FolderLike & { name: string; sortIndex: number };
+type DragEvent = { active: { id: unknown }; over: { id: unknown } | null };
 
 /** What the page reads from the app's library store. */
 export interface LibraryPageStore<Song, Folder> {
@@ -67,6 +68,7 @@ export function useLibraryPage<State extends LibraryPageStore<PageSong, PageFold
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [query, setQuery] = useState("");
+  const [dropTarget, setDropTarget] = useState<string | null>(null);
 
   useEffect(() => {
     fetchSongs();
@@ -88,7 +90,14 @@ export function useLibraryPage<State extends LibraryPageStore<PageSong, PageFold
     else moveSongs(outcome.folderId, outcome.orderedSongIds);
   };
 
-  const handleDragEnd = (event: { active: { id: unknown }; over: { id: unknown } | null }) => {
+  const handleDragOver = (event: DragEvent) => {
+    setDropTarget(event.over ? libraryDropTarget(layout, String(event.active.id), String(event.over.id)) : null);
+  };
+
+  const handleDragCancel = () => setDropTarget(null);
+
+  const handleDragEnd = (event: DragEvent) => {
+    setDropTarget(null);
     if (!event.over) return;
     applyDrop(resolveLibraryDrop(layout, String(event.active.id), String(event.over.id)));
   };
@@ -120,6 +129,9 @@ export function useLibraryPage<State extends LibraryPageStore<PageSong, PageFold
     deleteFolder,
     clearError,
     signInAndRetryYoutube,
+    dropTarget,
+    handleDragOver,
+    handleDragCancel,
     handleDragEnd,
     showAbout,
     openAbout: () => setShowAbout(true),
