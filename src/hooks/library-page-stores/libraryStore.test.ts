@@ -241,6 +241,122 @@ describe("YouTube import", () => {
   });
 });
 
+describe("import queue", () => {
+  const deferred = () => {
+    let resolve!: (s: Song) => void;
+    let reject!: (e: unknown) => void;
+    const promise = new Promise<Song>((res, rej) => {
+      resolve = res;
+      reject = rej;
+    });
+    return { promise, resolve, reject };
+  };
+
+  it("runs a second import only after the first finished, in the order given", async () => {
+    const { api, state } = setup();
+    const first = deferred();
+    const second = deferred();
+    api.processSong.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
+
+    const a = state().uploadSong("C:\\music\\a.mp3");
+    const b = state().uploadSong("/music/b.mp3");
+    expect(api.processSong).toHaveBeenCalledTimes(1);
+    expect(state().processingLabel).toBe("a.mp3");
+    expect(state().queue).toEqual([{ id: expect.any(String), label: "b.mp3", source: "file" }]);
+
+    first.resolve(song("a"));
+    await a;
+    await vi.waitFor(() => expect(api.processSong).toHaveBeenCalledTimes(2));
+    expect(state().processingLabel).toBe("b.mp3");
+    expect(state().queue).toEqual([]);
+
+    second.resolve(song("b"));
+    await b;
+    expect(state().songs.map((s) => s.id)).toEqual(["a", "b"]);
+    expect(state().processing).toBeNull();
+    expect(state().processingLabel).toBeNull();
+  });
+
+  it("passes each import its own options", async () => {
+    const { api, state } = setup();
+    api.processSong.mockResolvedValue(song("x"));
+    api.importYoutube.mockResolvedValue(song("y"));
+    await Promise.all([
+      state().uploadSong("/a.mp3", true),
+      state().importYoutubeRequest({ url: "u1" }, "/c.txt"),
+      state().uploadSong("/b.mp3", false),
+    ]);
+    expect(api.processSong.mock.calls).toEqual([["/a.mp3", true], ["/b.mp3", false]]);
+    expect(api.importYoutube).toHaveBeenCalledWith({ url: "u1" }, "/c.txt");
+  });
+
+  it("goes on with the next import after one fails, and names each failed one", async () => {
+    const { api, state } = setup();
+    const first = deferred();
+    api.processSong
+      .mockReturnValueOnce(first.promise)
+      .mockRejectedValueOnce("boom")
+      .mockResolvedValueOnce(song("c"));
+
+    const a = state().uploadSong("/a.mp3");
+    const b = state().uploadSong("/b.mp3");
+    const c = state().uploadSong("/c.mp3");
+    first.reject("bang");
+    await Promise.all([a, b, c]);
+
+    expect(state().songs.map((s) => s.id)).toEqual(["c"]);
+    expect(state().error).toBe("a.mp3: upload failed b.mp3: upload failed");
+    expect(errorSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it("leaves a lone failure unlabelled and replaces it when the next import starts on an idle queue", async () => {
+    const { api, state } = setup();
+    api.processSong.mockRejectedValueOnce("boom").mockResolvedValueOnce(song("b"));
+    await state().uploadSong("/a.mp3");
+    expect(state().error).toBe("upload failed");
+    await state().uploadSong("/b.mp3");
+    expect(state().error).toBeNull();
+  });
+
+  it("removes a waiting import, settling its promise, but never the running one", async () => {
+    const { api, state } = setup();
+    const first = deferred();
+    api.processSong.mockReturnValueOnce(first.promise).mockResolvedValue(song("c"));
+
+    const a = state().uploadSong("/a.mp3");
+    const b = state().uploadSong("/b.mp3");
+    const c = state().uploadSong("/c.mp3");
+    const [waitingB] = state().queue;
+    state().removeFromQueue(waitingB.id);
+    state().removeFromQueue("import-0");
+    state().removeFromQueue("nope");
+    await b;
+    expect(state().queue.map((q) => q.label)).toEqual(["c.mp3"]);
+
+    first.resolve(song("a"));
+    await Promise.all([a, c]);
+    expect(api.processSong.mock.calls.map((call) => call[0])).toEqual(["/a.mp3", "/c.mp3"]);
+    expect(state().songs.map((s) => s.id)).toEqual(["a", "c"]);
+  });
+
+  it("queues a YouTube link behind a file and keeps the sign-in retry for the one that expired", async () => {
+    const { api, state } = setup();
+    const first = deferred();
+    api.processSong.mockReturnValueOnce(first.promise);
+    api.importYoutube.mockRejectedValueOnce("Sign in to confirm you're not a bot");
+
+    const a = state().uploadSong("/a.mp3");
+    const b = state().importYoutubeRequest({ url: "https://youtu.be/x" }, "/c.txt");
+    expect(state().queue).toEqual([{ id: expect.any(String), label: "https://youtu.be/x", source: "youtube" }]);
+
+    first.resolve(song("a"));
+    await Promise.all([a, b]);
+    expect(state().sessionExpired).toBe(true);
+    expect(state().retryableYoutubeImport).toEqual({ url: "https://youtu.be/x" });
+    expect(state().queue).toEqual([]);
+  });
+});
+
 describe("progress listener", () => {
   it("shows the status until it completes and hands back the unlisten function", async () => {
     const { api, state } = setup();
