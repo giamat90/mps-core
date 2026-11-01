@@ -72,7 +72,7 @@ src/               TypeScript source, shipped as-is (no build step)
   pack/            practice pack manifest and reference pitch: reader and rules (writer is python/src/mps_core/pack.py)
   lyrics/          types, timing, ipc, store
   youtube/         cookiesSource, isSessionExpiredError, sign-in/out IPC wrappers
-python/            pip package mps-core (src/mps_core, tests/)
+python/            pip package mps-core (src/mps_core, tests/); yt_download = the YouTube import's progress hook, attempt names, fast-fail options and time budget
 rust/              Cargo workspace, git dependencies of the apps: youtube-signin = mps-youtube-signin, sidecar = mps-sidecar (start the Python sidecar, JSON-lines protocol), detached-windows = mps-detached-windows (detachable panel windows)
 fixtures/          sidecar replies pinned by Python, read by TypeScript
 tests/             architecture, public API, wire fixtures (TypeScript)

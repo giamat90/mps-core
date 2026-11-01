@@ -53,7 +53,7 @@ Not shared yet, with the reason, so the next person does not have to rediscover 
 | `windows.rs` (detached window creation, remembered geometry, `cursor_over_main`) | Identical in the two apps apart from the panel table and the data directory. Now that `rust/` exists it is the next candidate, together with `sidecar.rs`; until then it is copied, and each copy says so. |
 | `DetachHandle`, `DockHandle`, the detached host | Components styled by each app's CSS, like the menu; the gesture logic they call is shared. |
 | `sidecar.rs`, `test_util.rs`, most of `lyrics.rs` | 85% identical but entangled with each app's `Song` model, binary name and Tauri state. A Rust crate with injected configuration is the shape; not attempted in 0.1. |
-| `yt_importer.py` | Differs in the signature of the pipeline it calls; needs the pipeline injected. |
+| `yt_importer.py` | Differs in the signature of the pipeline it calls; needs the pipeline injected. Its reusable parts (progress hook, attempt naming, fast-fail options, attempt budget) are shared as `mps_core.yt_download`; the attempt loop stays in each app. |
 | `AudioEngine`, `player` store | Fixed three-track trio versus dynamic stem map: divergent by design (see `MPS/CLAUDE.md` rule 3). |
 | `release.yml`, `test.yml` | Per-app CI. Only the dependency installation lines changed. |
 

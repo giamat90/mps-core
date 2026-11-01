@@ -185,16 +185,52 @@ describe("YouTube import", () => {
     expect(state().songs.map((s) => s.id)).toEqual(["yt"]);
   });
 
-  it("offers a sign-in retry only when a saved session was turned down", async () => {
+  it("offers a first sign-in, not a renewal, when nobody was signed in and YouTube turned the import down", async () => {
+    const { api, state } = setup();
+    api.importYoutube.mockRejectedValue("HTTP Error 403: Forbidden");
+    await state().importYoutubeRequest({ url: "u" }, null);
+    expect(state().signInNeeded).toBe(true);
+    expect(state().sessionExpired).toBe(false);
+    expect(state().retryableYoutubeImport).toEqual({ url: "u" });
+
+    api.importYoutube.mockRejectedValue("Video unavailable");
+    await state().importYoutubeRequest({ url: "u" }, null);
+    expect(state().signInNeeded).toBe(false);
+    expect(state().retryableYoutubeImport).toBeNull();
+  });
+
+  it("signs in for the first time and retries, saving the cookies path", async () => {
+    const { api, signInYoutube, saveCookiesPath, state } = setup();
+    api.importYoutube.mockRejectedValueOnce("Sign in to confirm you're not a bot");
+    await state().importYoutubeRequest({ url: "u" }, null);
+
+    signInYoutube.mockResolvedValueOnce("/new.txt");
+    api.importYoutube.mockResolvedValueOnce(song("yt"));
+    await state().signInAndRetryYoutube();
+    expect(saveCookiesPath).toHaveBeenCalledWith("/new.txt");
+    expect(api.importYoutube).toHaveBeenLastCalledWith({ url: "u" }, "/new.txt");
+    expect(state().signInNeeded).toBe(false);
+    expect(state().songs.map((s) => s.id)).toEqual(["yt"]);
+  });
+
+  it("keeps offering the first sign-in when its window is closed", async () => {
+    const { api, signInYoutube, state } = setup();
+    api.importYoutube.mockRejectedValueOnce("Sign in to confirm you're not a bot");
+    await state().importYoutubeRequest({ url: "u" }, null);
+    signInYoutube.mockRejectedValueOnce("window closed");
+    await state().signInAndRetryYoutube();
+    expect(state().signInNeeded).toBe(true);
+    expect(state().sessionExpired).toBe(false);
+    expect(state().retryableYoutubeImport).toEqual({ url: "u" });
+  });
+
+  it("offers a renewal when a saved session was turned down", async () => {
     const { api, state } = setup();
     api.importYoutube.mockRejectedValue("Sign in to confirm you're not a bot");
 
-    await state().importYoutubeRequest({ url: "u" }, null);
-    expect(state().sessionExpired).toBe(false);
-    expect(state().retryableYoutubeImport).toBeNull();
-
     await state().importYoutubeRequest({ url: "u" }, "/c.txt");
     expect(state().sessionExpired).toBe(true);
+    expect(state().signInNeeded).toBe(false);
     expect(state().retryableYoutubeImport).toEqual({ url: "u" });
 
     await state().importYoutubeRequest({ url: "u" }, "/c.txt", { freshSession: true });
@@ -237,6 +273,7 @@ describe("YouTube import", () => {
     state().clearError();
     expect(state().error).toBeNull();
     expect(state().sessionExpired).toBe(false);
+    expect(state().signInNeeded).toBe(false);
     expect(state().retryableYoutubeImport).toBeNull();
   });
 });

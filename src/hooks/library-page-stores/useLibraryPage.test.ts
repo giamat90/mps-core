@@ -32,6 +32,7 @@ function makeStore(initial: Partial<LibraryPageStore<Song, Folder>> = {}) {
     isLoading: false,
     error: null,
     sessionExpired: false,
+    signInNeeded: false,
     processing: null,
     ...actions,
     ...initial,

@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+**A YouTube import that cannot reach the video says so within minutes, and shows what it is doing.**
+- `mps_core.yt_download` (new, Python, stdlib-only): `download_hook` reports `-1` (`INDETERMINATE`) when yt-dlp cannot say the file size, instead of pinning the bar at 15%; `attempt_stage` / `describe_attempt` name each cascade attempt ("downloading (attempt 2 of 7: Chrome cookies)"); `FAST_FAIL_OPTS` shortens yt-dlp's retries and timeouts; `AttemptBudget` stops starting new attempts after 180 s.
+- `useLibraryPage` returns `signInNeeded`: set when an import with no saved sign-in was turned down in a way a sign-in can fix. `signInAndRetryYoutube` serves both this and `sessionExpired`.
+- Apps: a progress below 0 means "unknown, show a moving bar".
+
 ## 0.20.0
 
 **Imports queue up instead of being refused while one is running.** The library store lines `uploadSong` and `importYoutubeRequest` up behind the running import.
