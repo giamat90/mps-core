@@ -13,6 +13,7 @@ export interface LibraryPageStore<Song, Folder> {
   isLoading: boolean;
   error: string | null;
   sessionExpired: boolean;
+  signInNeeded: boolean;
   processing: unknown;
   fetchSongs: () => Promise<void>;
   fetchFolders: () => Promise<void>;
@@ -47,6 +48,7 @@ export function useLibraryPage<State extends LibraryPageStore<PageSong, PageFold
   const isLoading = useStore((s) => s.isLoading);
   const error = useStore((s) => s.error);
   const sessionExpired = useStore((s) => s.sessionExpired);
+  const signInNeeded = useStore((s) => s.signInNeeded);
   const isProcessing = useStore((s) => s.processing !== null);
   const fetchSongs = useStore((s) => s.fetchSongs);
   const fetchFolders = useStore((s) => s.fetchFolders);
@@ -121,6 +123,7 @@ export function useLibraryPage<State extends LibraryPageStore<PageSong, PageFold
     isLoading,
     error,
     sessionExpired,
+    signInNeeded,
     isProcessing,
     hasContent: songs.length > 0 || layout.sortedFolders.length > 0,
     deleteSong,

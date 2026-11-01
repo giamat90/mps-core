@@ -77,6 +77,8 @@ export interface LibraryCoreState<
   error: string | null;
   /** The last YouTube import was turned down in a way a fresh sign-in can fix. */
   sessionExpired: boolean;
+  /** Same, but nobody was signed in yet: the first sign-in is what is on offer, not a renewal. */
+  signInNeeded: boolean;
   retryableYoutubeImport: Request | null;
 
   fetchSongs: () => Promise<void>;
@@ -187,6 +189,7 @@ export function libraryStateCreator<
     isLoading: false,
     error: null,
     sessionExpired: false,
+    signInNeeded: false,
     retryableYoutubeImport: null,
 
     fetchSongs: async () => {
@@ -228,6 +231,7 @@ export function libraryStateCreator<
         set({
           ...(waited ? {} : { error: null }),
           sessionExpired: false,
+          signInNeeded: false,
           retryableYoutubeImport: null,
           processing: idleStatus("Connecting…"),
           processingLabel: request.url,
@@ -237,13 +241,16 @@ export function libraryStateCreator<
           set((state) => ({ songs: [...state.songs, song], processing: null, processingLabel: null }) as Partial<S>);
         } catch (e) {
           console.error("YouTube import failed:", e);
-          const expired = !!cookiesPath && !fresh && isSessionExpiredError(e);
+          const blocked = !fresh && isSessionExpiredError(e);
+          const expired = !!cookiesPath && blocked;
+          const needed = !cookiesPath && blocked;
           set({
             processing: null,
             processingLabel: null,
             error: failure(waited, request.url, friendlyError(e, "youtube", !!cookiesPath, fresh)),
             sessionExpired: expired,
-            retryableYoutubeImport: expired ? request : null,
+            signInNeeded: needed,
+            retryableYoutubeImport: expired || needed ? request : null,
           } as Partial<S>);
         }
       });
@@ -260,13 +267,14 @@ export function libraryStateCreator<
     signInAndRetryYoutube: async () => {
       const request = get().retryableYoutubeImport;
       if (!request) return;
-      set({ error: null, sessionExpired: false } as Partial<S>);
+      const { sessionExpired, signInNeeded } = get();
+      set({ error: null, sessionExpired: false, signInNeeded: false } as Partial<S>);
       let cookiesPath: string;
       try {
         cookiesPath = await signInYoutube();
       } catch (e) {
         console.warn("[youtube] sign-in before retry failed:", e);
-        set({ error: String(e), sessionExpired: true } as Partial<S>);
+        set({ error: String(e), sessionExpired, signInNeeded } as Partial<S>);
         return;
       }
       saveCookiesPath(cookiesPath);
@@ -365,7 +373,8 @@ export function libraryStateCreator<
       }
     },
 
-    clearError: () => set({ error: null, sessionExpired: false, retryableYoutubeImport: null } as Partial<S>),
+    clearError: () =>
+      set({ error: null, sessionExpired: false, signInNeeded: false, retryableYoutubeImport: null } as Partial<S>),
 
     initProgressListener: async () =>
       api.onProcessingProgress((status) => {
