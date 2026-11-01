@@ -2,7 +2,7 @@ export { createFriendlyError, messageIncludes } from "./friendlyError";
 export type { ErrorContext, ErrorProbe, ErrorRule, FriendlyError, FriendlyErrorOptions } from "./friendlyError";
 export { libraryStateCreator } from "./libraryStore";
 export type {
-  FolderLike, LibraryApi, LibraryCoreState, LibraryDeps, ProcessingLike, SongLike, LibraryYoutubeOptions, YoutubeRequestLike,
+  FolderLike, LibraryApi, LibraryCoreState, LibraryDeps, ProcessingLike, QueuedImport, SongLike, LibraryYoutubeOptions, YoutubeRequestLike,
 } from "./libraryStore";
 export { createSongFilter, normalizeForSearch } from "./librarySearch";
 export type { SearchableSong, SongFilterOptions } from "./librarySearch";

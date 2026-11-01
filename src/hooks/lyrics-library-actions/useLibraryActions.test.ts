@@ -123,6 +123,23 @@ describe("useYouTubeImport", () => {
     expect(result.current.error).toBeNull();
   });
 
+  it("clears the box as soon as the link is handed over, not when the import ends", async () => {
+    let finish!: () => void;
+    const onImport = vi.fn(() => new Promise<void>((resolve) => (finish = resolve)));
+    const { result } = renderHook(() => useYouTubeImport({ isProcessing: false, onImport }));
+    act(() => result.current.setUrl(url));
+    let pending!: Promise<void>;
+    act(() => {
+      pending = result.current.submit();
+    });
+    expect(result.current.url).toBe("");
+    expect(onImport).toHaveBeenCalledWith(url);
+    await act(async () => {
+      finish();
+      await pending;
+    });
+  });
+
   it("can submit only an unbusy, non-blank box", () => {
     const busy = renderHook(() => useYouTubeImport({ isProcessing: true, onImport: vi.fn() }));
     act(() => busy.result.current.setUrl(url));

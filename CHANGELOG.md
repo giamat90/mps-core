@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.20.0
+
+**Imports queue up instead of being refused while one is running.** The library store lines `uploadSong` and `importYoutubeRequest` up behind the running import.
+- The store publishes `queue` and `processingLabel`; `removeFromQueue` drops a waiting import.
+- A failed import does not stop the line, and names itself in the error when others wait.
+- `useYouTubeImport` frees the link box when the link is handed over to the queue.
+
 ## 0.19.0
 
 **A song can be dropped on a closed folder, and the folder it would land in is highlighted.** A closed folder has no body to drop on; hovering its header gave the sortable section id `folder:<id>`, which `resolveLibraryDrop` mapped to nothing. The highlight used dnd-kit's `isOver`, false while the pointer is over a song row.

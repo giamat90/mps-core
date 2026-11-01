@@ -28,8 +28,11 @@ export function useYouTubeImport({ isProcessing, onImport }: YouTubeImportOption
       return;
     }
     setError(null);
-    await onImport(url);
+    // An app that queues imports resolves `onImport` only when that import ends, which can be long after
+    // the user wants the box free for the next link.
+    const link = url;
     setUrl("");
+    await onImport(link);
   };
 
   return {
