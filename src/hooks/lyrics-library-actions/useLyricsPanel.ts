@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useLyricsFollow } from "./useLyricsFollow";
 import { activeLineIndex, activeWordIndex, lineSeekTime, useLyricsStore } from "../../lyrics";
 
 export interface LyricsSong {
@@ -93,7 +94,8 @@ export function useLyricsPanel<S extends LyricsSong>({
 
   // Selectors return the index, not the time, so the list re-renders only when
   // the line or word actually changes rather than 30 times a second.
-  const activeLine = player.use((s) => (lyrics ? activeLineIndex(lyrics.lines, s.currentTime) : -1));
+  const [follow, setFollow] = useLyricsFollow();
+  const activeLine = player.use((s) => (lyrics && follow ? activeLineIndex(lyrics.lines, s.currentTime) : -1));
   const activeWord = player.use((s) =>
     lyrics && activeLine >= 0 ? activeWordIndex(lyrics.lines[activeLine], s.currentTime) : -1,
   );
@@ -139,6 +141,8 @@ export function useLyricsPanel<S extends LyricsSong>({
     openIdentity,
     closeIdentity: () => setIdentityOpen(false),
     saveIdentity: submitIdentity,
+    follow,
+    setFollow,
     activeLine,
     activeWord,
     listRef,
