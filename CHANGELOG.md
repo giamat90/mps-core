@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.22.0
 
 **The lyrics can stop following the song.** `useLyricsPanel` returns `follow` and `setFollow`; with follow off, `activeLine` and `activeWord` stay -1 (no lit line or word) and the list does not scroll, while `seekToLine` still works. The choice is kept in localStorage (`mps_lyrics_follow`, on by default) and re-read when another window writes it, so a detached lyrics window agrees with the docked one. The hook behind it, `useLyricsFollow`, is internal (not exported).
 
