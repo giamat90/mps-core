@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { StoreHook } from "./storeHook";
+import { operationLocks, type BusyState } from "../../locks";
 
 export interface ZipEntry {
   path: string;
@@ -34,7 +35,7 @@ export function addTakeEntries(entries: ZipEntry[], takes: readonly TakeFile[]):
 }
 
 export interface DownloadAllOptions<Song extends { directory: string; title: string }> {
-  store: StoreHook<{ takes: readonly TakeFile[] }>;
+  store: StoreHook<{ takes: readonly TakeFile[] } & BusyState>;
   song: Song;
   /** The tracks of the song itself, as zip entries; the takes are added after them. */
   trackEntries: (song: Song, directory: string) => ZipEntry[];
@@ -42,6 +43,8 @@ export interface DownloadAllOptions<Song extends { directory: string; title: str
 }
 
 export interface DownloadAll {
+  /** Why the zip cannot start right now (a take is still being added, the tracks are being swapped), else null. */
+  lockReason: string | null;
   isExporting: boolean;
   onDownload: () => Promise<void>;
 }
@@ -49,11 +52,14 @@ export interface DownloadAll {
 /** Zip every track and take of the song into one archive. */
 export function useDownloadAll<Song extends { directory: string; title: string }>(o: DownloadAllOptions<Song>): DownloadAll {
   const takes = o.store((s) => s.takes);
+  const lockReason = o.store((s) => operationLocks(s).exportAudio ?? operationLocks(s).takeEdit);
   const [isExporting, setIsExporting] = useState(false);
 
   return {
+    lockReason,
     isExporting,
     onDownload: async () => {
+      if (operationLocks(o.store.getState()).exportAudio !== null || operationLocks(o.store.getState()).takeEdit !== null) return;
       setIsExporting(true);
       try {
         const entries = addTakeEntries(o.trackEntries(o.song, songDirectory(o.song)), takes);

@@ -1,8 +1,9 @@
 import { useState } from "react";
 import type { CountInPurpose } from "../../audio/countIn";
 import type { StoreHook } from "./storeHook";
+import { operationLocks, type BusyState } from "../../locks";
 
-export interface RecordButtonState {
+export interface RecordButtonState extends BusyState {
   isRecording: boolean;
   isSavingTake: boolean;
   isCountingIn: boolean;
@@ -14,6 +15,8 @@ export interface RecordButtonState {
 }
 
 export interface RecordButton {
+  /** Why recording cannot start right now, else null. A recording or count-in under way can always be stopped. */
+  lockReason: string | null;
   isRecording: boolean;
   isSavingTake: boolean;
   /** A count-in the Record button owns: a recording's or a monitor's, not the one before Play. */
@@ -33,11 +36,14 @@ export function useRecordButton(store: StoreHook<RecordButtonState>): RecordButt
   const startRecording = store((s) => s.startRecording);
   const stopRecording = store((s) => s.stopRecording);
   const cancelCountIn = store((s) => s.cancelCountIn);
+  const startLock = store((s) => operationLocks(s).record);
   const [error, setError] = useState<string | null>(null);
 
   const isCountingIn = countingIn && countInFor !== "play";
+  const lockReason = isRecording || isCountingIn ? null : startLock;
 
   return {
+    lockReason,
     isRecording,
     isSavingTake,
     isCountingIn,
@@ -51,7 +57,7 @@ export function useRecordButton(store: StoreHook<RecordButtonState>): RecordButt
           await stopRecording();
         } else if (isCountingIn) {
           cancelCountIn();
-        } else {
+        } else if (lockReason === null) {
           await startRecording();
         }
       } catch (e) {
