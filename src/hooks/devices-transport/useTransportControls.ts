@@ -1,7 +1,8 @@
 import type { CountInPurpose } from "../../audio/countIn";
 import type { StoreHook } from "./storeHook";
+import { operationLocks, type BusyState } from "../../locks";
 
-export interface TransportControlsState {
+export interface TransportControlsState extends BusyState {
   isPlaying: boolean;
   currentTime: number;
   duration: number;
@@ -22,6 +23,8 @@ export interface TransportControlsOptions {
 }
 
 export interface TransportControls {
+  /** Why Play, Stop and the skips cannot be used right now (a transpose or a load under way), else null. */
+  lockReason: string | null;
   isPlaying: boolean;
   isRecording: boolean;
   /** The count-in before Play is running: the button shows `countInBeatsRemaining` and a click cancels it. */
@@ -57,9 +60,11 @@ export function useTransportControls(store: StoreHook<TransportControlsState>, o
   const skipToStart = store((s) => s.skipToStart);
   const skipToEnd = store((s) => s.skipToEnd);
 
+  const lockReason = store((s) => operationLocks(s).playback);
   const isCountingIn = countingIn && countInFor === "play";
 
   return {
+    lockReason,
     isPlaying,
     isRecording,
     isCountingIn,

@@ -62,6 +62,8 @@ src/               TypeScript source, shipped as-is (no build step)
   lib/             metronomeSync, zoomPan, music, pitch
   spectrum/        short-term spectrum: FFT, dB curve helpers, F0 and formants (pure; tests use __fixtures__/synthVowel)
   updater/         auto-update store
+  locks/           which actions are blocked while a procedure runs (pure `operationLocks`; hooks expose `lockReason`)
+  activity/        what the window is busy with: task store, summary, tracked `invoke` (headless; `useActivity` is in hooks)
   panels/          headless show/hide and order store for optional page panels
   windows/         detachable panels: protocol, remote clock, bridges, drag gestures
   takes/           which recorded takes are shown / heard (pure functions)

@@ -80,3 +80,6 @@ export { hiddenTrackTags } from "./app-stores/trackTags";
 export { detachedTitle, dockSafely, runBridge, startMainBridgeHost, useBridgeRun, useMainBridgeHost } from "./app-stores/bridgeHost";
 export type { BridgeRun, Disposable, MainBridgeHostOptions } from "./app-stores/bridgeHost";
 export {};
+// --- group: activity ---
+export { ACTIVITY_MIN_SHOWN_MS, ACTIVITY_SHOW_AFTER_MS, useActivity } from "./activity/useActivity";
+export type { ActivityView, UseActivityOptions } from "./activity/useActivity";

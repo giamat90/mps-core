@@ -94,6 +94,13 @@ equals it.
 
 **`pitch` is the first module whose second consumer is not SPS.** SPS has no live pitch; the second user is the planned phone app VPP (React Native, no Web Audio). It is shared because the algorithm is a pure function of a sample window, and it was kept free of `AudioContext` on purpose: the `PitchDetector` class that owns the AnalyserNode stays in VPS. It was moved unchanged (same thresholds, same quadratic cost); making it faster for a phone (lag-limited or FFT-based correlation) is a separate change that has to be measured on a device first, because it can shift results.
 
+### Operation locks are one pure table
+`locks/operationLocks.ts` maps the busy flags to a reason per group of actions (`playback`, `record`, `monitor`, `transpose`, `takeEdit`, `exportAudio`, `leave`); `null` means free. The hooks expose it as `lockReason`, the apps' stores call it again at the top of the action (the UI can lag a render, a keyboard shortcut does not go through the UI), and the markup shows the control disabled with the reason as its tooltip. One table means VPS and SPS cannot disagree about what races what. Stop and cancel actions are never in it.
+
+### Activity feedback is a store plus one debounced hook
+
+`activity/` holds a task list (`begin`, `track`) and `createTrackedInvoke`, which wraps an app's `invoke` with a command-to-sentence table. `useActivity` shows the indicator only after 300 ms and keeps it at least 600 ms, so a fast action never flashes it. The label table, the store instance and the markup are the app's; the package never names a command.
+
 ## Failure modes this design has, and what covers them
 
 | Risk | Cover |

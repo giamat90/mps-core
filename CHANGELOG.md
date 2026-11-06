@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+**Activity feedback: the window says what it is busy with.** New `@giamat90/mps-core/activity` and one hook.
+- `createActivityStore` (`begin`, `track`; tasks with a label and optional progress), `describeActivity` (names the task begun last, counts the rest) and `createTrackedInvoke` (wraps Tauri `invoke` so commands in a label table show up as activity; a command with no args is still called with one argument).
+- `useActivity` decides when to show it: not before 300 ms, then at least 600 ms, keeping the last label while it lingers.
+- Markup and CSS stay in the apps.
+
+**Operation locks: controls that would race a running procedure are disabled, not hidden.** New `@giamat90/mps-core/locks`.
+- `operationLocks(state)` is a pure table from what is running (`isLoadingSong`, `isTransposing`, `isRecording`, `isMonitoring`, `isCountingIn`, `isSavingTake`) to a reason string or `null` for each group: `playback`, `record`, `monitor`, `transpose`, `takeEdit`, `exportAudio`, `leave`.
+- `useTransportControls`, `useRecordButton`, `useKeyTranspose`, `useExportMix` and `useDownloadAll` expose `lockReason` and refuse their action while it is set. Stopping a recording or cancelling a count-in is never locked.
+
 ## 0.20.0
 
 **Imports queue up instead of being refused while one is running.** The library store lines `uploadSong` and `importYoutubeRequest` up behind the running import.

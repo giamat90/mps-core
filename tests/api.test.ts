@@ -48,6 +48,8 @@ const SURFACE: Record<string, string[]> = {
     "xToFreq",
   ],
   "./updater": ["useUpdaterStore"],
+  "./activity": ["createActivityStore", "createTrackedInvoke", "describeActivity"],
+  "./locks": ["operationLocks"],
   "./panels": ["createCollapseStore", "createPanelStore"],
   "./takes": ["EMPTY_SELECTION", "audibleTakes", "hideTake", "reconcileTakes", "showTake", "takeSilence", "toggleTake"],
   "./windows": [
@@ -94,6 +96,8 @@ const SURFACE: Record<string, string[]> = {
     "validateLoop",
   ],
   "./hooks": [
+    "ACTIVITY_MIN_SHOWN_MS",
+    "ACTIVITY_SHOW_AFTER_MS",
     "AUDIO_EXTENSIONS",
     "FIRST_CLICK_S",
     "FOLDER_DRAG_PREFIX",
@@ -148,6 +152,7 @@ const SURFACE: Record<string, string[]> = {
     "takeDisplayName",
     "tickInterval",
     "useBridgeRun",
+    "useActivity",
     "useCollapsiblePanel",
     "useCountInButton",
     "useDetachHandle",
