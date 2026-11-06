@@ -73,23 +73,21 @@ export interface OutputSelectState {
   selectedOutputDeviceId: string | null;
   fetchOutputDevices: () => unknown;
   setOutputDevice: (id: string | null) => Promise<unknown>;
-  song: unknown;
 }
 
-/** The output picker: needs a loaded song (the sink belongs to the audio engine). */
+/** The output picker. It needs no song: the audio engine keeps the sink and applies it to every song it loads. */
 export function useOutputSelect(store: StoreHook<OutputSelectState>): DeviceSelect {
   const devices = store((s) => s.outputDevices);
   const selectedId = store((s) => s.selectedOutputDeviceId);
   const fetchDevices = store((s) => s.fetchOutputDevices);
   const select = store((s) => s.setOutputDevice);
-  const song = store((s) => s.song);
   return useDeviceSelect({
     devices,
     selectedId,
     fetchDevices,
     select,
     unnamedPrefix: "Speaker",
-    disabled: !song,
+    disabled: false,
     selectFailureLog: "[OutputSelector] setSinkId failed:",
   });
 }

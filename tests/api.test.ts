@@ -50,6 +50,7 @@ const SURFACE: Record<string, string[]> = {
   "./updater": ["useUpdaterStore"],
   "./activity": ["createActivityStore", "createTrackedInvoke", "describeActivity"],
   "./locks": ["operationLocks"],
+  "./audio-setup": ["EMPTY_AUDIO_SETUP", "normalizeAudioSetup", "resolveSavedDevice", "toSavedDevice"],
   "./panels": ["createCollapseStore", "createPanelStore"],
   "./takes": ["EMPTY_SELECTION", "audibleTakes", "hideTake", "reconcileTakes", "showTake", "takeSilence", "toggleTake"],
   "./windows": [
@@ -174,6 +175,7 @@ const SURFACE: Record<string, string[]> = {
     "usePanelMenu",
     "usePopover",
     "useRecordButton",
+    "useSavedAudioSetup",
     "useTakeList",
     "useTempoControl",
     "useTimeRuler",

@@ -46,7 +46,7 @@ describe("loading persisted settings", () => {
   it("drops a setting an older version saved the next time anything is saved", () => {
     localStorage.setItem(KEY, JSON.stringify({ pitchAlgorithm: "crepe", collapsedFolders: {} }));
     fresh().getState().setFolderCollapsed("a", true);
-    expect(stored()).toEqual({ youtubeCookiesPath: null, collapsedFolders: { a: true } });
+    expect(stored()).toEqual({ youtubeCookiesPath: null, collapsedFolders: { a: true }, audioSetup: { input: null, output: null } });
   });
 
   it("ignores a wrongly-typed cookies path and collapsedFolders", () => {
@@ -81,7 +81,7 @@ describe("loading persisted settings", () => {
 describe("persisting changes", () => {
   it("persists only the settings the user can change", () => {
     fresh().getState().setYoutubeCookiesPath("/c.txt");
-    expect(stored()).toEqual({ youtubeCookiesPath: "/c.txt", collapsedFolders: {} });
+    expect(stored()).toEqual({ youtubeCookiesPath: "/c.txt", collapsedFolders: {}, audioSetup: { input: null, output: null } });
   });
 
   it("writes and clears the cookies path", () => {
@@ -119,5 +119,26 @@ describe("persisting changes", () => {
     store.getState().setYoutubeCookiesPath("/c.txt");
     expect(store.getState().youtubeCookiesPath).toBe("/c.txt");
     expect(warn).toHaveBeenCalled();
+  });
+});
+
+describe("audio setup", () => {
+  it("defaults to the system devices", () => {
+    expect(fresh().getState().audioSetup).toEqual({ input: null, output: null });
+  });
+
+  it("saves the input and the output apart and restores them", () => {
+    const store = fresh();
+    store.getState().setAudioInput({ id: "in1", label: "Focusrite" });
+    store.getState().setAudioOutput({ id: "out1", label: "Speakers" });
+    expect(stored().audioSetup).toEqual({ input: { id: "in1", label: "Focusrite" }, output: { id: "out1", label: "Speakers" } });
+    expect(fresh().getState().audioSetup.input).toEqual({ id: "in1", label: "Focusrite" });
+    store.getState().setAudioInput(null);
+    expect(fresh().getState().audioSetup).toEqual({ input: null, output: { id: "out1", label: "Speakers" } });
+  });
+
+  it("ignores a malformed stored setup", () => {
+    localStorage.setItem(KEY, JSON.stringify({ audioSetup: "nope" }));
+    expect(fresh().getState().audioSetup).toEqual({ input: null, output: null });
   });
 });

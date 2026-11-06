@@ -93,22 +93,21 @@ describe("useOutputSelect", () => {
     selectedOutputDeviceId: null,
     fetchOutputDevices: vi.fn(),
     setOutputDevice: vi.fn(async () => {}),
-    song: null,
   });
 
-  it("needs a song and uses the speaker wording", () => {
+  it("works without a song and uses the speaker wording", () => {
     const store = createFakeStore(state());
     const { result } = renderHook(() => useOutputSelect(store));
-    expect(result.current.disabled).toBe(true);
-    expect(result.current.options[1].label).toBe("Speaker zzzzzz");
-    act(() => store.set({ song: { id: "s" } }));
     expect(result.current.disabled).toBe(false);
+    expect(result.current.options[1].label).toBe("Speaker zzzzzz");
+    act(() => store.set({ selectedOutputDeviceId: "abcdef123456" }));
+    expect(result.current.value).toBe("abcdef123456");
   });
 
   it("logs when the sink cannot be set", async () => {
     const error = vi.spyOn(console, "error").mockImplementation(() => {});
     const boom = new Error("sink");
-    const store = createFakeStore({ ...state(), song: {}, setOutputDevice: vi.fn(() => Promise.reject(boom)) });
+    const store = createFakeStore({ ...state(), setOutputDevice: vi.fn(() => Promise.reject(boom)) });
     const { result } = renderHook(() => useOutputSelect(store));
     result.current.onChange("zzzzzzzz");
     await Promise.resolve();

@@ -11,6 +11,12 @@
 - `operationLocks(state)` is a pure table from what is running (`isLoadingSong`, `isTransposing`, `isRecording`, `isMonitoring`, `isCountingIn`, `isSavingTake`) to a reason string or `null` for each group: `playback`, `record`, `monitor`, `transpose`, `takeEdit`, `exportAudio`, `leave`.
 - `useTransportControls`, `useRecordButton`, `useKeyTranspose`, `useExportMix` and `useDownloadAll` expose `lockReason` and refuse their action while it is set. Stopping a recording or cancelling a count-in is never locked.
 
+**One audio setup for every song.** The input and output the user picks are remembered, and can be set in Settings.
+- New `@giamat90/mps-core/audio-setup` (pure): `SavedDevice` (id and name), `normalizeAudioSetup`, `toSavedDevice`, `resolveSavedDevice` (finds a saved device by id, then by name; says "missing" for one that is not connected; claims nothing while the browser lists devices without ids).
+- `createSettingsStore` gains `audioSetup`, `setAudioInput`, `setAudioOutput`, persisted with the other settings.
+- New hook `useSavedAudioSetup` (what is remembered, which saved device is not connected, reset to the system defaults).
+- `useOutputSelect` no longer needs a loaded song (`song` is gone from `OutputSelectState`): the engine keeps the output and applies it to every song it loads, so the picker can sit in Settings.
+
 ## 0.20.0
 
 **Imports queue up instead of being refused while one is running.** The library store lines `uploadSong` and `importYoutubeRequest` up behind the running import.

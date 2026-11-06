@@ -18,6 +18,7 @@
     "./lyrics": "./src/lyrics/index.ts",
     "./activity": "./src/activity/index.ts",
     "./locks": "./src/locks/index.ts",
+    "./audio-setup": "./src/audio-setup/index.ts",
     "./panels": "./src/panels/index.ts",
     "./windows": "./src/windows/index.ts",
     "./takes": "./src/takes/index.ts",
