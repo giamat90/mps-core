@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.23.0
+
+**Activity feedback: the window says what it is busy with.** New `@giamat90/mps-core/activity` and one hook.
+- `createActivityStore` (`begin`, `track`; tasks with a label and optional progress), `describeActivity` (names the task begun last, counts the rest) and `createTrackedInvoke` (wraps Tauri `invoke` so commands in a label table show up as activity; a command with no args is still called with one argument).
+- `useActivity` decides when to show it: not before 300 ms, then at least 600 ms, keeping the last label while it lingers.
+- Markup and CSS stay in the apps.
+
+**Operation locks: controls that would race a running procedure are disabled, not hidden.** New `@giamat90/mps-core/locks`.
+- `operationLocks(state)` is a pure table from what is running (`isLoadingSong`, `isTransposing`, `isRecording`, `isMonitoring`, `isCountingIn`, `isSavingTake`) to a reason string or `null` for each group: `playback`, `record`, `monitor`, `transpose`, `takeEdit`, `exportAudio`, `leave`.
+- `useTransportControls`, `useRecordButton`, `useKeyTranspose`, `useExportMix` and `useDownloadAll` expose `lockReason` and refuse their action while it is set. Stopping a recording or cancelling a count-in is never locked.
+
+**One audio setup for every song.** The input and output the user picks are remembered, and can be set in Settings.
+- New `@giamat90/mps-core/audio-setup` (pure): `SavedDevice` (id and name), `normalizeAudioSetup`, `toSavedDevice`, `resolveSavedDevice` (finds a saved device by id, then by name; says "missing" for one that is not connected; claims nothing while the browser lists devices without ids).
+- `createSettingsStore` gains `audioSetup`, `setAudioInput`, `setAudioOutput`, persisted with the other settings.
+- New hook `useSavedAudioSetup` (what is remembered, which saved device is not connected, reset to the system defaults).
+- `useOutputSelect` no longer needs a loaded song (`song` is gone from `OutputSelectState`): the engine keeps the output and applies it to every song it loads, so the picker can sit in Settings.
+
+## 0.22.0
+
+**The lyrics can stop following the song.** `useLyricsPanel` returns `follow` and `setFollow`; with follow off, `activeLine` and `activeWord` stay -1 (no lit line or word) and the list does not scroll, while `seekToLine` still works. The choice is kept in localStorage (`mps_lyrics_follow`, on by default) and re-read when another window writes it, so a detached lyrics window agrees with the docked one. The hook behind it, `useLyricsFollow`, is internal (not exported).
+
+## 0.21.0
+
+**A YouTube import that cannot reach the video says so within minutes, and shows what it is doing.**
+- `mps_core.yt_download` (new, Python, stdlib-only): `download_hook` reports `-1` (`INDETERMINATE`) when yt-dlp cannot say the file size, instead of pinning the bar at 15%; `attempt_stage` / `describe_attempt` name each cascade attempt ("downloading (attempt 2 of 7: Chrome cookies)"); `FAST_FAIL_OPTS` shortens yt-dlp's retries and timeouts; `AttemptBudget` stops starting new attempts after 180 s.
+- `useLibraryPage` returns `signInNeeded`: set when an import with no saved sign-in was turned down in a way a sign-in can fix. `signInAndRetryYoutube` serves both this and `sessionExpired`.
+- Apps: a progress below 0 means "unknown, show a moving bar".
+
 ## 0.20.0
 
 **Imports queue up instead of being refused while one is running.** The library store lines `uploadSong` and `importYoutubeRequest` up behind the running import.

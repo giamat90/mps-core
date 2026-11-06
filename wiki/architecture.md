@@ -53,7 +53,7 @@ Not shared yet, with the reason, so the next person does not have to rediscover 
 | `windows.rs` (detached window creation, remembered geometry, `cursor_over_main`) | Identical in the two apps apart from the panel table and the data directory. Now that `rust/` exists it is the next candidate, together with `sidecar.rs`; until then it is copied, and each copy says so. |
 | `DetachHandle`, `DockHandle`, the detached host | Components styled by each app's CSS, like the menu; the gesture logic they call is shared. |
 | `sidecar.rs`, `test_util.rs`, most of `lyrics.rs` | 85% identical but entangled with each app's `Song` model, binary name and Tauri state. A Rust crate with injected configuration is the shape; not attempted in 0.1. |
-| `yt_importer.py` | Differs in the signature of the pipeline it calls; needs the pipeline injected. |
+| `yt_importer.py` | Differs in the signature of the pipeline it calls; needs the pipeline injected. Its reusable parts (progress hook, attempt naming, fast-fail options, attempt budget) are shared as `mps_core.yt_download`; the attempt loop stays in each app. |
 | `AudioEngine`, `player` store | Fixed three-track trio versus dynamic stem map: divergent by design (see `MPS/CLAUDE.md` rule 3). |
 | `release.yml`, `test.yml` | Per-app CI. Only the dependency installation lines changed. |
 
@@ -93,6 +93,16 @@ equals it.
 **The first Rust crate is a git dependency in a subdirectory.** `rust/youtube-signin` (0.7.0) is a Cargo package the apps name by repository and tag, so one tag still covers all three languages. Cargo locates the package inside the repository by name; the apps' `Cargo.lock` records the exact commit. What differs per app (the data directory) is a parameter; what is an app's alone (the `#[tauri::command]` wrappers, the invoke handler that rejects the sign-in window) stays in the app. The crate is generic over the Tauri runtime and its pure logic (cookie file format, signed-in detection, the navigation allowlist) takes plain strings so its tests need no window. Its CI job runs on Windows, where the webview crates build without system packages.
 
 **`pitch` is the first module whose second consumer is not SPS.** SPS has no live pitch; the second user is the planned phone app VPP (React Native, no Web Audio). It is shared because the algorithm is a pure function of a sample window, and it was kept free of `AudioContext` on purpose: the `PitchDetector` class that owns the AnalyserNode stays in VPS. It was moved unchanged (same thresholds, same quadratic cost); making it faster for a phone (lag-limited or FFT-based correlation) is a separate change that has to be measured on a device first, because it can shift results.
+
+### The audio setup is remembered by id and by name
+`audio-setup/` keeps what the user picked as `{ id, label }` in the settings store; the player store (an app's `devices` slice) writes it on every pick and reads it back whenever the device list is known: after the microphone is allowed, and on `devicechange`. `resolveSavedDevice` matches by id, then by name (an id can change for the same hardware), and reports a saved device that is not connected without forgetting it, so it is used again when plugged in; the system default is used meanwhile. Before the microphone is allowed the browser lists devices without ids, and nothing is matched or reported missing then. Choosing the system default forgets the saved choice. The recording latency stays keyed by input device (`recordingOffsets`), so it follows the input with no second value to keep in step.
+
+### Operation locks are one pure table
+`locks/operationLocks.ts` maps the busy flags to a reason per group of actions (`playback`, `record`, `monitor`, `transpose`, `takeEdit`, `exportAudio`, `leave`); `null` means free. The hooks expose it as `lockReason`, the apps' stores call it again at the top of the action (the UI can lag a render, a keyboard shortcut does not go through the UI), and the markup shows the control disabled with the reason as its tooltip. One table means VPS and SPS cannot disagree about what races what. Stop and cancel actions are never in it.
+
+### Activity feedback is a store plus one debounced hook
+
+`activity/` holds a task list (`begin`, `track`) and `createTrackedInvoke`, which wraps an app's `invoke` with a command-to-sentence table. `useActivity` shows the indicator only after 300 ms and keeps it at least 600 ms, so a fast action never flashes it. The label table, the store instance and the markup are the app's; the package never names a command.
 
 ## Failure modes this design has, and what covers them
 

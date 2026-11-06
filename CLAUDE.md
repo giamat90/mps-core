@@ -62,6 +62,9 @@ src/               TypeScript source, shipped as-is (no build step)
   lib/             metronomeSync, zoomPan, music, pitch
   spectrum/        short-term spectrum: FFT, dB curve helpers, F0 and formants (pure; tests use __fixtures__/synthVowel)
   updater/         auto-update store
+  audio-setup/     the remembered input and output: saved device (id + name), matching a saved device with the connected ones (pure)
+  locks/           which actions are blocked while a procedure runs (pure `operationLocks`; hooks expose `lockReason`)
+  activity/        what the window is busy with: task store, summary, tracked `invoke` (headless; `useActivity` is in hooks)
   panels/          headless show/hide and order store for optional page panels
   windows/         detachable panels: protocol, remote clock, bridges, drag gestures
   takes/           which recorded takes are shown / heard (pure functions)
@@ -72,7 +75,7 @@ src/               TypeScript source, shipped as-is (no build step)
   pack/            practice pack manifest and reference pitch: reader and rules (writer is python/src/mps_core/pack.py)
   lyrics/          types, timing, ipc, store
   youtube/         cookiesSource, isSessionExpiredError, sign-in/out IPC wrappers
-python/            pip package mps-core (src/mps_core, tests/)
+python/            pip package mps-core (src/mps_core, tests/); yt_download = the YouTube import's progress hook, attempt names, fast-fail options and time budget
 rust/              Cargo workspace, git dependencies of the apps: youtube-signin = mps-youtube-signin, sidecar = mps-sidecar (start the Python sidecar, JSON-lines protocol), detached-windows = mps-detached-windows (detachable panel windows)
 fixtures/          sidecar replies pinned by Python, read by TypeScript
 tests/             architecture, public API, wire fixtures (TypeScript)

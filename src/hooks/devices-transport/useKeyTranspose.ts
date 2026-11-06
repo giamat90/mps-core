@@ -1,10 +1,11 @@
 import { useState } from "react";
 import type { StoreHook } from "./storeHook";
+import { operationLocks, type BusyState } from "../../locks";
 
 export const TRANSPOSE_MIN = -6;
 export const TRANSPOSE_MAX = 6;
 
-export interface KeyTransposeState {
+export interface KeyTransposeState extends BusyState {
   transpose: number;
   isTransposing: boolean;
   song: unknown;
@@ -15,6 +16,8 @@ export interface KeyTranspose {
   transpose: number;
   isTransposing: boolean;
   disabled: boolean;
+  /** Why the buttons cannot be used right now (a transpose under way, a recording, ...), else null. */
+  lockReason: string | null;
   /** The value being applied while a shift is under way, else the current one. */
   displayValue: number;
   /** `+3`, `0`, `-2`. */
@@ -31,11 +34,12 @@ export function useKeyTranspose(store: StoreHook<KeyTransposeState>): KeyTranspo
   const setTranspose = store((s) => s.setTranspose);
   const [pending, setPending] = useState<number | null>(null);
 
-  const disabled = isTransposing || !song;
+  const lockReason = store((s) => operationLocks(s).transpose);
+  const disabled = !song || lockReason !== null;
   const displayValue = isTransposing && pending !== null ? pending : transpose;
 
   const apply = (next: number) => {
-    if (next === transpose) return;
+    if (next === transpose || store.getState().song === null || operationLocks(store.getState()).transpose !== null) return;
     setPending(next);
     setTranspose(next)
       .catch((e: unknown) => console.error("[KeyTranspose] setTranspose failed:", e))
@@ -46,9 +50,10 @@ export function useKeyTranspose(store: StoreHook<KeyTransposeState>): KeyTranspo
     transpose,
     isTransposing,
     disabled,
+    lockReason,
     displayValue,
     valueText: displayValue > 0 ? `+${displayValue}` : `${displayValue}`,
-    showReset: transpose !== 0 && !isTransposing,
+    showReset: displayValue !== 0,
     shift: (delta) => apply(Math.max(TRANSPOSE_MIN, Math.min(TRANSPOSE_MAX, transpose + delta))),
     reset: () => apply(0),
   };

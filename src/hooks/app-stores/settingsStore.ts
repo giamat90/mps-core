@@ -1,15 +1,20 @@
 import { create, type StoreApi, type UseBoundStore } from "zustand";
+import { EMPTY_AUDIO_SETUP, normalizeAudioSetup, type AudioSetup, type SavedDevice } from "../../audio-setup";
 
 export interface SettingsState {
   youtubeCookiesPath: string | null;
   setYoutubeCookiesPath: (path: string | null) => void;
   collapsedFolders: Record<string, boolean>;
   setFolderCollapsed: (folderId: string, collapsed: boolean) => void;
+  /** The input and output wanted in every song (see `audio-setup`). */
+  audioSetup: AudioSetup;
+  setAudioInput: (device: SavedDevice | null) => void;
+  setAudioOutput: (device: SavedDevice | null) => void;
 }
 
 export type SettingsStore = UseBoundStore<StoreApi<SettingsState>>;
 
-type PersistedSettings = Pick<SettingsState, "youtubeCookiesPath" | "collapsedFolders">;
+type PersistedSettings = Pick<SettingsState, "youtubeCookiesPath" | "collapsedFolders" | "audioSetup">;
 
 function load(storageKey: string): PersistedSettings {
   try {
@@ -22,10 +27,11 @@ function load(storageKey: string): PersistedSettings {
         collapsed && typeof collapsed === "object" && !Array.isArray(collapsed)
           ? (collapsed as Record<string, boolean>)
           : {},
+      audioSetup: normalizeAudioSetup(raw.audioSetup),
     };
   } catch (e) {
     console.warn("[settings] Could not load settings:", e);
-    return { youtubeCookiesPath: null, collapsedFolders: {} };
+    return { youtubeCookiesPath: null, collapsedFolders: {}, audioSetup: EMPTY_AUDIO_SETUP };
   }
 }
 
@@ -48,6 +54,7 @@ export function createSettingsStore({ storageKey }: { storageKey: string }): Set
       persist(storageKey, {
         youtubeCookiesPath: get().youtubeCookiesPath,
         collapsedFolders: get().collapsedFolders,
+        audioSetup: get().audioSetup,
       });
 
     return {
@@ -60,6 +67,16 @@ export function createSettingsStore({ storageKey }: { storageKey: string }): Set
 
       setFolderCollapsed: (folderId, collapsed) => {
         set({ collapsedFolders: { ...get().collapsedFolders, [folderId]: collapsed } });
+        save();
+      },
+
+      setAudioInput: (device) => {
+        set({ audioSetup: { ...get().audioSetup, input: device } });
+        save();
+      },
+
+      setAudioOutput: (device) => {
+        set({ audioSetup: { ...get().audioSetup, output: device } });
         save();
       },
     };

@@ -203,6 +203,73 @@ describe("following the song", () => {
     state.currentTime = 3.5;
     expect(() => rerender()).not.toThrow();
   });
+
+  describe("switched off", () => {
+    beforeEach(() => localStorage.clear());
+
+    it("follows by default", () => {
+      const { result } = renderHook(() => useLyricsPanel(options()));
+      expect(result.current.follow).toBe(true);
+    });
+
+    it("lights no line and no word, and does not scroll, but still seeks", () => {
+      const { result, rerender } = renderHook(() => useLyricsPanel(options()));
+      act(() => result.current.setFollow(false));
+      const scrollTo = vi.fn();
+      (result.current.listRef as { current: HTMLDivElement | null }).current = {
+        clientHeight: 100,
+        scrollTo,
+      } as unknown as HTMLDivElement;
+      result.current.setLineRef(1)({ offsetTop: 300, clientHeight: 20 } as HTMLButtonElement);
+      state.currentTime = 4.2;
+      rerender();
+      expect([result.current.activeLine, result.current.activeWord]).toEqual([-1, -1]);
+      expect(scrollTo).not.toHaveBeenCalled();
+      result.current.seekToLine(1);
+      expect(seek).toHaveBeenCalledWith(2.7);
+    });
+
+    it("picks up where the song is when switched back on", () => {
+      const { result, rerender } = renderHook(() => useLyricsPanel(options()));
+      act(() => result.current.setFollow(false));
+      state.currentTime = 4.2;
+      rerender();
+      act(() => result.current.setFollow(true));
+      expect([result.current.activeLine, result.current.activeWord]).toEqual([1, 1]);
+    });
+
+    it("remembers the choice for the next panel", () => {
+      const first = renderHook(() => useLyricsPanel(options()));
+      act(() => first.result.current.setFollow(false));
+      first.unmount();
+      const second = renderHook(() => useLyricsPanel(options()));
+      expect(second.result.current.follow).toBe(false);
+    });
+
+    it("follows the choice made in another window", () => {
+      const { result } = renderHook(() => useLyricsPanel(options()));
+      act(() => {
+        localStorage.setItem("mps_lyrics_follow", "off");
+        window.dispatchEvent(new StorageEvent("storage", { key: "mps_lyrics_follow" }));
+      });
+      expect(result.current.follow).toBe(false);
+    });
+
+    it("warns and keeps following when storage is unavailable", () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      vi.stubGlobal("localStorage", {
+        getItem: () => {
+          throw new Error("blocked");
+        },
+        setItem: () => {},
+      });
+      const { result } = renderHook(() => useLyricsPanel(options()));
+      expect(result.current.follow).toBe(true);
+      expect(warn).toHaveBeenCalled();
+      vi.unstubAllGlobals();
+      warn.mockRestore();
+    });
+  });
 });
 
 describe("actions", () => {

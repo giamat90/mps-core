@@ -25,6 +25,8 @@ export type {
 } from "./devices-transport/useDeviceSelect";
 export { TRANSPOSE_MAX, TRANSPOSE_MIN, useKeyTranspose } from "./devices-transport/useKeyTranspose";
 export type { KeyTranspose, KeyTransposeState } from "./devices-transport/useKeyTranspose";
+export { useSavedAudioSetup } from "./devices-transport/useSavedAudioSetup";
+export type { SavedAudioSetup, SavedAudioSetupState, SavedAudioSettingsState } from "./devices-transport/useSavedAudioSetup";
 export { useLoopToggle } from "./devices-transport/useLoopToggle";
 export type { LoopToggle, LoopToggleState } from "./devices-transport/useLoopToggle";
 export { RATE_MAX, RATE_MIN, RATE_STEP, formatDownbeat, useTempoControl } from "./devices-transport/useTempoControl";
@@ -80,3 +82,6 @@ export { hiddenTrackTags } from "./app-stores/trackTags";
 export { detachedTitle, dockSafely, runBridge, startMainBridgeHost, useBridgeRun, useMainBridgeHost } from "./app-stores/bridgeHost";
 export type { BridgeRun, Disposable, MainBridgeHostOptions } from "./app-stores/bridgeHost";
 export {};
+// --- group: activity ---
+export { ACTIVITY_MIN_SHOWN_MS, ACTIVITY_SHOW_AFTER_MS, useActivity } from "./activity/useActivity";
+export type { ActivityView, UseActivityOptions } from "./activity/useActivity";

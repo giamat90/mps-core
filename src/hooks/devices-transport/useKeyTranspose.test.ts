@@ -44,7 +44,7 @@ describe("useKeyTranspose", () => {
     expect(store.getState().setTranspose).not.toHaveBeenCalled();
   });
 
-  it("shows the pending value while transposing and offers Reset only when idle and shifted", async () => {
+  it("shows the pending value while transposing and keeps Reset in place, disabled", async () => {
     let finish!: () => void;
     const setTranspose = vi.fn(() => new Promise<void>((resolve) => (finish = resolve)));
     const store = make({ transpose: 2, setTranspose });
@@ -53,7 +53,8 @@ describe("useKeyTranspose", () => {
     act(() => result.current.shift(1));
     act(() => store.set({ isTransposing: true }));
     expect(result.current.displayValue).toBe(3);
-    expect(result.current.showReset).toBe(false);
+    expect(result.current.showReset).toBe(true);
+    expect(result.current.disabled).toBe(true);
     await act(async () => {
       finish();
       await Promise.resolve();
@@ -80,5 +81,29 @@ describe("useKeyTranspose", () => {
       await Promise.resolve();
     });
     expect(error).toHaveBeenCalledWith("[KeyTranspose] setTranspose failed:", boom);
+  });
+});
+
+describe("useKeyTranspose locks", () => {
+  it.each([
+    ["recording", { isRecording: true }, "Stop recording first"],
+    ["monitoring", { isMonitoring: true }, "Stop monitoring first"],
+    ["counting in", { isCountingIn: true }, "Wait for the count-in"],
+    ["analyzing a take", { isSavingTake: true }, "Wait for the take to finish analyzing"],
+    ["loading the song", { isLoadingSong: true }, "The song is still loading"],
+    ["transposing", { isTransposing: true }, "Wait for the transpose to finish"],
+  ] as const)("cannot be changed while %s, and says why", (_name, patch, reason) => {
+    const store = make({ transpose: 2, ...patch });
+    const { result } = renderHook(() => useKeyTranspose(store));
+    expect(result.current.disabled).toBe(true);
+    expect(result.current.lockReason).toBe(reason);
+    expect(result.current.showReset).toBe(true);
+    act(() => result.current.shift(1));
+    act(() => result.current.reset());
+    expect(store.getState().setTranspose).not.toHaveBeenCalled();
+  });
+
+  it("is free when nothing runs", () => {
+    expect(renderHook(() => useKeyTranspose(make())).result.current.lockReason).toBeNull();
   });
 });
