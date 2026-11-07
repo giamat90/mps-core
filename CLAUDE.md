@@ -70,6 +70,7 @@ src/               TypeScript source, shipped as-is (no build step)
   takes/           which recorded takes are shown / heard (pure functions)
   shortcuts/       global keydown handler (ignores typing, chords, repeats)
   loops/           named loops and bar sections (pure functions)
+  master/          the master volume: clamp, apply to a gain, percent text, remembered level (pure; `useMasterVolume` is in hooks)
   punch/           the punch region drag: which edge, live preview, what a release commits (pure functions)
   hooks/           headless hooks: the logic of components both apps carry (store, IPC and dialogs injected; no markup, no CSS); dnd.ts holds the ones needing @dnd-kit
   pack/            practice pack manifest and reference pitch: reader and rules (writer is python/src/mps_core/pack.py)

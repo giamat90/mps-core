@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.24.0
+
+**A master volume: one level above every track.** New `@giamat90/mps-core/master` (pure, plus localStorage) and one hook.
+- `clampMaster` (0 to 1, to the hundredth; a value that is not a number is full level, not silence), `applyMaster(gain, master)`, `masterPercent`, `loadMasterVolume` / `saveMasterVolume` (key `mps_master_volume`, errors logged, never thrown), `MASTER_DEFAULT`, `MASTER_STEP`, `MASTER_STORAGE_KEY`.
+- `useMasterVolume(store)`: level, `"80%"` text, `muted`, `onChange` (number or string), `toggleMute` (brings back the level it had), `title`. The store needs `masterVolume` and `setMasterVolume`.
+- No boost above 1: the media elements under the waveforms cap there.
+- Markup and CSS stay in the apps. The apps multiply it into the gain they push to the player, not into an exported mix.
+
 ## 0.23.0
 
 **Activity feedback: the window says what it is busy with.** New `@giamat90/mps-core/activity` and one hook.
