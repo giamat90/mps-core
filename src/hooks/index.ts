@@ -37,6 +37,8 @@ export { useRecordButton } from "./devices-transport/useRecordButton";
 export type { RecordButton, RecordButtonState } from "./devices-transport/useRecordButton";
 export { formatClock, useTransportControls } from "./devices-transport/useTransportControls";
 export type { TransportControls, TransportControlsOptions, TransportControlsState } from "./devices-transport/useTransportControls";
+export { useMasterVolume } from "./devices-transport/useMasterVolume";
+export type { MasterVolume, MasterVolumeState } from "./devices-transport/useMasterVolume";
 export { useExportMix } from "./devices-transport/useExportMix";
 export type { ExportMix, ExportMixOptions, MixPlan } from "./devices-transport/useExportMix";
 export { addTakeEntries, songDirectory, useDownloadAll } from "./devices-transport/useDownloadAll";

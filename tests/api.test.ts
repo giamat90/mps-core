@@ -85,6 +85,7 @@ const SURFACE: Record<string, string[]> = {
     "pulseSeconds", "pulseTimes", "pulsesBetween", "relabelBars", "removeBar", "repeatingCycle", "replaceBars", "rescalePulse",
     "round3", "setBarStart", "shiftBars", "shiftDownbeat", "splitBar", "unitBpm", "validateMap",
   ],
+  "./master": ["MASTER_DEFAULT", "MASTER_STEP", "MASTER_STORAGE_KEY", "applyMaster", "clampMaster", "loadMasterVolume", "masterPercent", "saveMasterVolume"],
   "./loops": [
     "MAX_LOOPS",
     "MAX_LOOP_NAME",
@@ -170,6 +171,7 @@ const SURFACE: Record<string, string[]> = {
     "useLoopsMenu",
     "useLyricsPanel",
     "useMainBridgeHost",
+    "useMasterVolume",
     "useMicSelect",
     "useOutputSelect",
     "usePanelMenu",
