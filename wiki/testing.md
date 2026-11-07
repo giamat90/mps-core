@@ -43,3 +43,7 @@ $env:UPDATE_FIXTURES = "1"; cd python; python -m pytest tests/test_wire_fixture.
 
 Review the `fixtures/` diff, then run `npx vitest run`. A TypeScript failure there
 means the types or the timing code no longer match what the sidecar sends.
+
+## CI cost
+
+CI cost assumes this repo is public; revisit triggers before changing visibility. PR runs cancel older runs on the same branch; docs-only changes (`wiki/**`, `**.md`) start no test job.
